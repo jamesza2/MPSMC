@@ -1,0 +1,9 @@
+num_sites=30
+max_bond_dimension=50
+truncated_bd=10
+tau=0.1
+Jz=1.0
+external_field=0.1
+num_iterations=20
+mps_file_name=../../out/XXZ_MPS
+out_file=../../out/XXZ_evolution
