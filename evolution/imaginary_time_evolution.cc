@@ -1,5 +1,7 @@
 #include "itensor/all.h"
 #include "../headers/input.h"
+#include "../headers/operators.h"
+#include "../headers/thermal_system.h"
 #include <random>
 #include <ctime>
 #include <cmath>
@@ -58,7 +60,7 @@ int main(int argc, char *argv[]){
 		double energy = sys.expectation_value(H);
 		energy = energy/num_sites;
 		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has energy " << energy << endl;
-		int bond_dimension = itensor::maxLinkDim(psi);
+		int bond_dimension = itensor::maxLinkDim(sys.psi);
 		double avg_Sz_val = sys.expectation_value(avg_Sz);
 		
 		out_file << energy << "|" << bond_dimension << "|" << avg_Sz_val << endl;
