@@ -39,13 +39,14 @@ int main(int argc, char*argv[]){
 	double Jz = input.getDouble("Jz");
 	double h = input.getDouble("external_field");
 	int num_truncations = input.getInteger("num_truncations");
+	std::string method = input.GetVariable("configuration_selection");
 	std::string out_file_name = input.GetVariable("out_file");
 
 	std::cerr << "Read input files" << endl;
 
 	itensor::SiteSet sites = itensor::SpinHalf(num_sites, {"ConserveQNs=", false});
 	OperatorMaker opm(sites);
-	auto ampo = opm.XXZHamiltonian(1.0, 0.1);
+	auto ampo = opm.XXZHamiltonian(Jz, h);
 	itensor::MPO itev = itensor::toExpH(ampo, tau);
 	itensor::MPO H = itensor::toMPO(ampo);
 
@@ -81,31 +82,49 @@ int main(int argc, char*argv[]){
 	std::cerr << "Finding a large overlap configuration..." << endl;
 
 	itensor::InitState random_config_init(sites, "Up");
-	auto Sz1_op = itensor::toMPO(opm.SingleSiteSz(1));
-	double Sz1 = sys.expectation_value(Sz1_op);
-	bool Sz1_up = true; //Determines whether the first site in the selected configuration should be up or down
-	std::string sequence = "";
-	if(Sz1 < 0){
-		random_config_init.set(1,"Dn");
-		sequence += "D";
-		Sz1_up = false;
+	if((method == "random")||(method == "Random")){
+		std::mt19937 generator(std::time(NULL));
+		std::string sequence = "";
+		for(int i = 1; i <= num_sites; i++){
+			int random_value = generator();
+			if(random_value % 2 == 1){
+				random_config_init.set(i, "Dn");
+				sequence += "D";
+			}
+			else{
+				sequence += "U";
+			}
+		}
+		std::cerr << "Configuration: " << sequence << endl;
 	}
 	else{
-		sequence += "U";
-	}
-	
-	for(int j = 2; j <= num_sites; j++){
-		auto Sc1j_op = itensor::toMPO(opm.SpinCorrelation(1,j));
-		double Sc1j = sys.expectation_value(Sc1j_op);
-		if(Sc1j*Sz1 < 0){
+		auto Sz1_op = itensor::toMPO(opm.SingleSiteSz(1));
+		double Sz1 = sys.expectation_value(Sz1_op);
+		bool Sz1_up = true; //Determines whether the first site in the selected configuration should be up or down
+		std::string sequence = "";
+		if(Sz1 < 0){
+			random_config_init.set(1,"Dn");
 			sequence += "D";
-			random_config_init.set(j,"Dn");
+			Sz1_up = false;
 		}
 		else{
 			sequence += "U";
 		}
+		
+		for(int j = 2; j <= num_sites; j++){
+			auto Sc1j_op = itensor::toMPO(opm.SpinCorrelation(1,j));
+			double Sc1j = sys.expectation_value(Sc1j_op);
+			if(Sc1j*Sz1 < 0){
+				sequence += "D";
+				random_config_init.set(j,"Dn");
+			}
+			else{
+				sequence += "U";
+			}
+		}
+		std::cerr << "Configuration: " << sequence << endl;
 	}
-	std::cerr << "Configuration: " << sequence << endl;
+	
 	itensor::MPS random_config(random_config_init);
 	
 
