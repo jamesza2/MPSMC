@@ -70,6 +70,10 @@ class ThermalSystem{
 			}
 		}
 
+		void iterate_single(){
+			iterate(tau);
+		}
+
 		void iterate_single_no_truncation(){
 			apply_MPO_no_truncation();
 		}
