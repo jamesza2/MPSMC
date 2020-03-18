@@ -79,15 +79,20 @@ class ThermalSystem{
 			int num_sites = itensor::length(psi);
 			//std::mt19937 generator;
 			//std::uniform_real_distribution<double> distribution(0.0, 1.0);
-			for(int i = 2; i <= num_sites; i++){
+
+			for(int i = 1; i < num_sites; i++){
 				auto site_tensor = psi(i);
-				auto left_link = itensor::leftLinkIndex(psi, i);
-				auto site_index = itensor::siteIndex(psi, i);
-				auto [U,S,V] = itensor::svd(site_tensor,{left_link});
+				auto neighbor_tensor = psi(i+1);
+				auto combined_tensor = site_tensor*neighbor_tensor;
+				auto left_site = itensor::siteIndex(psi, i);
+				itensor::IndexSet Uindices = {left_site};
+				if(i > 1){
+					auto left_link = itensor::leftLinkIndex(psi, i);
+					Uindices = itensor::unionInds(left_link, Uindices);
+				}
+				auto [U,S,V] = itensor::svd(combined_tensor, Uindices);
 				auto V_original_index = itensor::commonIndex(S,V);
 				auto U_original_index = itensor::commonIndex(U,S);
-				
-				//Find the random elements that you're going to keep
 				std::vector<double> singular_values = abs_diagonal_elems(S);
 				int original_bd = singular_values.size();
 				std::vector<int> random_elements = random_weighted(singular_values, truncated_bd, generator, distribution);
@@ -105,22 +110,22 @@ class ThermalSystem{
 
 				//Apply them to U, S and V
 				//Should change U to U*T, S to T*S*T and V to T*S
-				V = V*(T*itensor::delta(T_original_index, V_original_index));
-				U = U*(T*itensor::delta(T_original_index, U_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
-				S = S*(T*itensor::delta(T_original_index, U_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed))*(T*itensor::delta(T_original_index,V_original_index));
-				
+				V = V*(T*itensor::delta(T_original_index, V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
+				U = U*(T*itensor::delta(T_original_index, U_original_index));
+				S = S*(T*itensor::delta(T_original_index, U_original_index))*(T*itensor::delta(T_original_index,V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
 				//Turn S's diagonal elements into repeat numbers
 				for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
 					S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, 1.0*repeats[repeat_index-1].second/truncated_bd);
 				}
 				//Collect new U into current matrix, S*V into the forward matrix
-				psi.ref(i-1) *= U*S;
-				psi.ref(i) = V;
+				psi.ref(i) = U;
+				psi.ref(i+1) = S*V;
 				//Readjust link indices
 				auto link_indices = itensor::linkInds(psi);
-				link_indices(i-1) = T_truncated_index;
+				link_indices(i) = T_truncated_index;
 				psi.replaceLinkInds(link_indices);
 			}
+			
 			
 		}
 
