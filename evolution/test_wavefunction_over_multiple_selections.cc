@@ -70,7 +70,7 @@ int main(int argc, char*argv[]){
 
 	std::cerr << "Constructing initial High-BD state..." << endl;
 
-	ThermalSystem sys(sites, itev, tau, 1000000, truncated_bd);
+	ThermalSystem sys(sites, itev, tau, 1000000, truncated_bds[0]);
 
 	//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
 	while(itensor::maxLinkDim(sys.psi) <= max_bd){
@@ -166,7 +166,7 @@ int main(int argc, char*argv[]){
 	}
 	out_file << "\n#TRUNCATED_OVERLAPS:";
 	for(double average_overlap : average_overlaps){
-		out_file << "\n" << overlap;
+		out_file << "\n" << average_overlap;
 	}
 	out_file.close();
 
