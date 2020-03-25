@@ -135,15 +135,21 @@ int main(int argc, char*argv[]){
 	std::cerr << "Creating truncated overlaps..." << endl;
 	vector<double> average_overlaps;
 	time_t start_time = std::time(NULL);
+	vector<double> average_max_truncation;
+	vector<double> average_average_truncation;
 	for(int i = 0; i < truncated_bds.size(); i++){
 		int num_selections = truncated_bds[i];
 		sys.set_truncated_bd(num_selections);
 		vector<double> overlaps;
+		vector<double> truncations_max;
+		vector<double> truncations_average;
 		for(int i = 0; i < num_truncations; i++){
 			sys.set_MPS(original_psi);
 			sys.truncate();
 			double ov = sys.overlap(random_config);
 			overlaps.push_back(ov);
+			truncations_max.push_back(((float)(sys.get_max_bd()))/itensor::maxLinkDim(original_psi));
+			truncations_average.push_back(sys.get_avg_bd()/itensor::averageLinkDim(original_psi));
 			//std::cerr << "Overlap with configuration: " << ov << endl;
 			//double fid = sys.overlap(original_psi);
 			//std::cerr << "Fidelity with original state: " << fid << "(" << i+1 << "/" << num_truncations << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
@@ -151,6 +157,8 @@ int main(int argc, char*argv[]){
 		}
 		double average_overlap = sum(overlaps)/num_truncations;
 		average_overlaps.push_back(average_overlap);
+		average_max_truncation.push_back(sum(truncations_max)/num_truncations);
+		average_average_truncation.push_back(sum(truncations_average)/num_truncations);
 		std::cerr << "Original overlap: " << original_overlap << " Final average overlap: " << average_overlap << " (" << i+1 << "/" << truncated_bds.size() << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
 		start_time = time(NULL);
 	}
@@ -167,6 +175,14 @@ int main(int argc, char*argv[]){
 	out_file << "\n#TRUNCATED_OVERLAPS:";
 	for(double average_overlap : average_overlaps){
 		out_file << "\n" << average_overlap;
+	}
+	out_file << "\n#AVERAGE_MAX_TRUNCATION:";
+	for(double average_truncation : average_max_truncation){
+		out_file << "\n" << average_truncation;
+	}
+	out_file << "\n#AVERAGE_AVERAGE_TRUNCATION:";
+	for(double average_truncation : average_average_truncation){
+		out_file << "\n" << average_truncation;
 	}
 	out_file.close();
 
