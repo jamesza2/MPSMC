@@ -40,7 +40,7 @@ class InputClass
   vector<string> getVectorString(string myVar, char delimiter = ','){
     return toVectorString(GetVariable(myVar), delimiter);
   }
-  vector<int> getVectorInt(string myVar, char delimiter = ','){
+  vector<int> getVectorInteger(string myVar, char delimiter = ','){
     return toVectorInt(GetVariable(myVar), delimiter);
   }
 
