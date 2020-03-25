@@ -78,6 +78,14 @@ class ThermalSystem{
 			apply_MPO_no_truncation();
 		}
 
+		int get_max_bd(){
+			return itensor::maxLinkDim(psi);
+		}
+
+		int get_avg_bd(){
+			return itensor::averageLinkDim(psi);
+		}
+
 		void set_truncated_bd(int new_truncated_bd){
 			truncated_bd = new_truncated_bd;
 		}
