@@ -78,6 +78,10 @@ class ThermalSystem{
 			apply_MPO_no_truncation();
 		}
 
+		void set_truncated_bd(int new_truncated_bd){
+			truncated_bd = new_truncated_bd;
+		}
+
 		void truncate(){
 			std::cerr << "Truncating MPS..." << std::endl;
 			int num_sites = itensor::length(psi);
@@ -111,7 +115,7 @@ class ThermalSystem{
 				for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
 					T.set(T_truncated_index = repeat_index, T_original_index = repeats[repeat_index-1].first, 1.0);
 				}
-
+				
 				//Apply them to U, S and V
 				//Should change U to U*T, S to T*S*T and V to T*S
 				V = V*(T*itensor::delta(T_original_index, V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
