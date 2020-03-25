@@ -83,7 +83,7 @@ class ThermalSystem{
 		}
 
 		void truncate(){
-			std::cerr << "Truncating MPS..." << std::endl;
+			//std::cerr << "Truncating MPS..." << std::endl;
 			int num_sites = itensor::length(psi);
 			//std::mt19937 generator;
 			//std::uniform_real_distribution<double> distribution(0.0, 1.0);
