@@ -184,6 +184,7 @@ int main(int argc, char*argv[]){
 	for(double average_truncation : average_average_truncation){
 		out_file << "\n" << average_truncation;
 	}
+	out_file << "\n#ORIGINAL_BOND_DIMENSION:\n" << itensor::maxLinkDim(original_psi);
 	out_file.close();
 
 }
