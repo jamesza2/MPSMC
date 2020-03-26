@@ -150,7 +150,7 @@ int main(int argc, char*argv[]){
 			overlaps.push_back(ov);
 			truncations_max.push_back(((float)(sys.get_max_bd()))/itensor::maxLinkDim(original_psi));
 			truncations_average.push_back(sys.get_avg_bd()/itensor::averageLinkDim(original_psi));
-			std::cerr << "Overlap with configuration: " << ov << " | Decrease of Max BD: " << truncations_max[i] << " | Decrease of Average BD: " << truncations_average[i] << endl;
+			std::cerr << "Overlap with configuration: " << ov << " | Old Max BD: " << itensor::maxLinkDim(original_psi) << " | New Max BD: " << sys.get_max_bd() << endl;
 			//double fid = sys.overlap(original_psi);
 			//std::cerr << "Fidelity with original state: " << fid << "(" << i+1 << "/" << num_truncations << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
 			
