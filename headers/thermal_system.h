@@ -70,6 +70,23 @@ class ThermalSystem{
 			}
 		}
 
+		void iterate_simple(){
+			apply_MPO_no_truncation();
+			if(itensor::maxLinkDim(psi) > max_bd){
+				truncate_simple();
+			}
+			double first_tensor_norm = itensor::norm(psi(1));
+			psi.ref(1) /= first_tensor_norm;
+
+			double norm = std::sqrt(std::abs(itensor::innerC(psi, psi)));
+			if(norm == 0){
+				std::cerr << "ERROR: Norm of MPS has dropped to 0" << std::endl;
+				print(psi);
+				return;
+			}
+			psi /= norm;
+		}
+
 		void iterate_single(){
 			iterate(tau);
 		}
@@ -141,8 +158,31 @@ class ThermalSystem{
 				link_indices(i) = T_truncated_index;
 				psi.replaceLinkInds(link_indices);
 			}
-			
-			
+		}
+
+
+		void truncate_simple(int max_bd, double threshhold){ //Truncate by removing lowest singular values (keeping up to max_bd singular values) instead of randomly selecting values
+			int num_sites = itensor::length(psi);
+
+			for(int i = 1; i < num_sites; i++){
+				auto site_tensor = psi(i);
+				auto neighbor_tensor = psi(i+1);
+				auto combined_tensor = site_tensor*neighbor_tensor;
+				auto left_site = itensor::siteIndex(psi, i);
+				itensor::IndexSet Uindices = {left_site};
+				if(i > 1){
+					auto left_link = itensor::leftLinkIndex(psi, i);
+					Uindices = itensor::unionInds(left_link, Uindices);
+				}
+				auto [U,S,V] = itensor::svd(combined_tensor, Uindices, {"Truncate", true, "MaxDim", max_bd, "Cutoff", threshhold});
+				auto V_original_index = itensor::commonIndex(S,V);
+				auto U_original_index = itensor::commonIndex(U,S);
+				psi.ref(i) = U;
+				psi.ref(i+1) = S*V;
+				auto link_indices = itensor::linkInds(psi);
+				link_indices(i) = U_original_index;
+				psi.replaceLinkINds(link_indices);
+			}
 		}
 
 		itensor::MPS copy_state(){
@@ -155,145 +195,145 @@ class ThermalSystem{
 
 	private:
 		std::vector<double> abs_diagonal_elems(itensor::ITensor &T){
-		if(itensor::order(T) != 2){
-			std::cerr << "ERROR: Tensor S=";
-			Print(T);
-			std::cerr << " has order " << itensor::order(T) << " instead of 2" << std::endl;
-			return vector<double>();
-		}
-		auto indices = itensor::inds(T);
-		auto index_1 = indices(1);
-		auto index_2 = indices(2);
-		if(itensor::dim(index_1) != itensor::dim(index_2)){
-			std::cerr << "ERROR: Index dimensions " << itensor::dim(index_1) << " and " << itensor::dim(index_2) << " not equal " << std::endl;
-			return vector<double>();
-		}
-		std::vector<double> diagonals;
-		diagonals.reserve(itensor::dim(index_1));
-		for(int i = 1; i <= itensor::dim(index_1); i++){
-			diagonals.push_back(std::abs(itensor::elt(T,index_1=i, index_2=i)));
-		}
-		return diagonals;
-	}
-
-	double sum(std::vector<double> v){
-		double s = 0;
-		for(double elem:v){
-			s += elem;
-		}
-		return s;
-	}
-
-	double random_double(){
-		return distribution(generator);
-	}
-
-	//Picks a random integer between 0 and len(weights), weighted by the weights std::vector.
-	std::vector<int> random_weighted(std::vector<double> weights, int num_picks, std::mt19937 &generator, std::uniform_real_distribution<double> &distribution){
-		std::vector<double> cumulative_weights;
-		cumulative_weights.push_back(weights[0]);
-		for(int i = 1; i < weights.size(); i++){
-			cumulative_weights.push_back(weights[i] + cumulative_weights[i-1]);
-		}
-		double total_weight = cumulative_weights[cumulative_weights.size()-1];
-		std::vector<double> rd;
-		for(int i = 0; i < num_picks; i++){
-			rd.push_back(random_double()*total_weight);
-		}
-		std::vector<int> random_elements;
-		for(double spork:rd){
-			int L = 0;
-			int R = cumulative_weights.size()-1;
-			while(true){
-				if(L == R){
-					random_elements.push_back(L+1);
-					break;
-				}
-				if(L > R){
-					std::cerr << "ERROR: Binary search failed because Left end = " << L << " while Right end = " << R << std::endl;
-					random_elements.push_back(-1);
-					break;
-				}
-				int M = std::rint((L+R)/2);
-				if(spork > cumulative_weights[M]){
-					L = M+1;
-					continue;
-				}
-				if(M == 0){
-					random_elements.push_back(1);
-					break;
-				}
-				if(spork < cumulative_weights[M-1]){
-					R = M-1;
-					continue;
-				}
-				random_elements.push_back(M+1);
-				break;
+			if(itensor::order(T) != 2){
+				std::cerr << "ERROR: Tensor S=";
+				Print(T);
+				std::cerr << " has order " << itensor::order(T) << " instead of 2" << std::endl;
+				return vector<double>();
 			}
+			auto indices = itensor::inds(T);
+			auto index_1 = indices(1);
+			auto index_2 = indices(2);
+			if(itensor::dim(index_1) != itensor::dim(index_2)){
+				std::cerr << "ERROR: Index dimensions " << itensor::dim(index_1) << " and " << itensor::dim(index_2) << " not equal " << std::endl;
+				return vector<double>();
+			}
+			std::vector<double> diagonals;
+			diagonals.reserve(itensor::dim(index_1));
+			for(int i = 1; i <= itensor::dim(index_1); i++){
+				diagonals.push_back(std::abs(itensor::elt(T,index_1=i, index_2=i)));
+			}
+			return diagonals;
 		}
-		return random_elements;
 
-	}
+		double sum(std::vector<double> v){
+			double s = 0;
+			for(double elem:v){
+				s += elem;
+			}
+			return s;
+		}
 
-	//Collect repeated instances of n in the vector of integers and count how many times they've been repeated.
-	std::vector<std::pair<int, int>> collect_repeats(std::vector<int> random_integers){
-		std::vector<std::pair<int, int>> repeats;
-		for(int i:random_integers){
-			bool repeated = false;
-			for(int j = 0; j < repeats.size(); j++){
-				std::pair<int, int> j_pair = repeats[j];
-				if(i == j_pair.first){
-					repeats[j].second += 1;
-					repeated = true;
+		double random_double(){
+			return distribution(generator);
+		}
+
+		//Picks a random integer between 0 and len(weights), weighted by the weights std::vector.
+		std::vector<int> random_weighted(std::vector<double> weights, int num_picks, std::mt19937 &generator, std::uniform_real_distribution<double> &distribution){
+			std::vector<double> cumulative_weights;
+			cumulative_weights.push_back(weights[0]);
+			for(int i = 1; i < weights.size(); i++){
+				cumulative_weights.push_back(weights[i] + cumulative_weights[i-1]);
+			}
+			double total_weight = cumulative_weights[cumulative_weights.size()-1];
+			std::vector<double> rd;
+			for(int i = 0; i < num_picks; i++){
+				rd.push_back(random_double()*total_weight);
+			}
+			std::vector<int> random_elements;
+			for(double spork:rd){
+				int L = 0;
+				int R = cumulative_weights.size()-1;
+				while(true){
+					if(L == R){
+						random_elements.push_back(L+1);
+						break;
+					}
+					if(L > R){
+						std::cerr << "ERROR: Binary search failed because Left end = " << L << " while Right end = " << R << std::endl;
+						random_elements.push_back(-1);
+						break;
+					}
+					int M = std::rint((L+R)/2);
+					if(spork > cumulative_weights[M]){
+						L = M+1;
+						continue;
+					}
+					if(M == 0){
+						random_elements.push_back(1);
+						break;
+					}
+					if(spork < cumulative_weights[M-1]){
+						R = M-1;
+						continue;
+					}
+					random_elements.push_back(M+1);
 					break;
 				}
 			}
-			if(!repeated){
-				repeats.push_back(std::make_pair(i, 1));
-			}
+			return random_elements;
+
 		}
-		return repeats;
-	}
 
-	
+		//Collect repeated instances of n in the vector of integers and count how many times they've been repeated.
+		std::vector<std::pair<int, int>> collect_repeats(std::vector<int> random_integers){
+			std::vector<std::pair<int, int>> repeats;
+			for(int i:random_integers){
+				bool repeated = false;
+				for(int j = 0; j < repeats.size(); j++){
+					std::pair<int, int> j_pair = repeats[j];
+					if(i == j_pair.first){
+						repeats[j].second += 1;
+						repeated = true;
+						break;
+					}
+				}
+				if(!repeated){
+					repeats.push_back(std::make_pair(i, 1));
+				}
+			}
+			return repeats;
+		}
 
-	//Apply the MPO to psi, changing it and not attempting to use any algorithms to truncate its bond dimension
-	//Automatically deprimes site indices
-	void apply_MPO_no_truncation(){
-		int num_sites = itensor::length(psi);
-
-		std::vector<itensor::Index> new_link_indices;
-		new_link_indices.reserve(num_sites);
-
-		auto MPO_first_link = itensor::rightLinkIndex(*itev, 1);
-		auto MPS_first_link = itensor::rightLinkIndex(psi, 1);
-		auto [first_combiner, first_link_index] = itensor::combiner(itensor::IndexSet(MPO_first_link, MPS_first_link),{"Tags=","Link,l=1"});
-
-		std::vector<itensor::ITensor> new_MPS;
 		
-		new_MPS.push_back(psi(1)*(*itev)(1)*first_combiner);
-		new_link_indices.push_back(first_link_index);
 
-		for(int i = 2; i <= num_sites; i++){
-			auto MPO_left_link = itensor::leftLinkIndex(*itev, i);
-			auto MPS_left_link = itensor::leftLinkIndex(psi, i);
-			auto [left_combiner, left_combined_index] = itensor::combiner(MPO_left_link, MPS_left_link);
-			if(i == num_sites){
-				new_MPS.push_back(psi(num_sites)*(*itev)(num_sites)*left_combiner*itensor::delta(left_combined_index, new_link_indices[num_sites-2]));
-				break;
+		//Apply the MPO to psi, changing it and not attempting to use any algorithms to truncate its bond dimension
+		//Automatically deprimes site indices
+		void apply_MPO_no_truncation(){
+			int num_sites = itensor::length(psi);
+
+			std::vector<itensor::Index> new_link_indices;
+			new_link_indices.reserve(num_sites);
+
+			auto MPO_first_link = itensor::rightLinkIndex(*itev, 1);
+			auto MPS_first_link = itensor::rightLinkIndex(psi, 1);
+			auto [first_combiner, first_link_index] = itensor::combiner(itensor::IndexSet(MPO_first_link, MPS_first_link),{"Tags=","Link,l=1"});
+
+			std::vector<itensor::ITensor> new_MPS;
+			
+			new_MPS.push_back(psi(1)*(*itev)(1)*first_combiner);
+			new_link_indices.push_back(first_link_index);
+
+			for(int i = 2; i <= num_sites; i++){
+				auto MPO_left_link = itensor::leftLinkIndex(*itev, i);
+				auto MPS_left_link = itensor::leftLinkIndex(psi, i);
+				auto [left_combiner, left_combined_index] = itensor::combiner(MPO_left_link, MPS_left_link);
+				if(i == num_sites){
+					new_MPS.push_back(psi(num_sites)*(*itev)(num_sites)*left_combiner*itensor::delta(left_combined_index, new_link_indices[num_sites-2]));
+					break;
+				}
+				auto MPO_right_link = itensor::rightLinkIndex(*itev, i);
+				auto MPS_right_link = itensor::rightLinkIndex(psi, i);
+				auto [right_combiner, right_combined_index] = itensor::combiner(itensor::IndexSet(MPO_right_link, MPS_right_link), {"Tags=","Link,l="+std::to_string(i)});
+				new_MPS.push_back(psi(i)*(*itev)(i)*left_combiner*right_combiner*itensor::delta(left_combined_index, new_link_indices[i-2]));
+				new_link_indices.push_back(right_combined_index);
 			}
-			auto MPO_right_link = itensor::rightLinkIndex(*itev, i);
-			auto MPS_right_link = itensor::rightLinkIndex(psi, i);
-			auto [right_combiner, right_combined_index] = itensor::combiner(itensor::IndexSet(MPO_right_link, MPS_right_link), {"Tags=","Link,l="+std::to_string(i)});
-			new_MPS.push_back(psi(i)*(*itev)(i)*left_combiner*right_combiner*itensor::delta(left_combined_index, new_link_indices[i-2]));
-			new_link_indices.push_back(right_combined_index);
+			for(int i = 1; i <= num_sites; i++){
+				psi.ref(i) = new_MPS[i-1];
+			}
+			psi.replaceLinkInds(itensor::IndexSet(new_link_indices));
+			psi.replaceSiteInds(itensor::noPrime(itensor::siteInds(psi)));
 		}
-		for(int i = 1; i <= num_sites; i++){
-			psi.ref(i) = new_MPS[i-1];
-		}
-		psi.replaceLinkInds(itensor::IndexSet(new_link_indices));
-		psi.replaceSiteInds(itensor::noPrime(itensor::siteInds(psi)));
-	}
 };
 
 #endif
