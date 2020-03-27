@@ -70,10 +70,10 @@ class ThermalSystem{
 			}
 		}
 
-		void iterate_simple(){
+		void iterate_simple(double threshhold){
 			apply_MPO_no_truncation();
 			if(itensor::maxLinkDim(psi) > max_bd){
-				truncate_simple();
+				truncate_simple(max_bd, threshhold);
 			}
 			double first_tensor_norm = itensor::norm(psi(1));
 			psi.ref(1) /= first_tensor_norm;
@@ -181,7 +181,7 @@ class ThermalSystem{
 				psi.ref(i+1) = S*V;
 				auto link_indices = itensor::linkInds(psi);
 				link_indices(i) = U_original_index;
-				psi.replaceLinkINds(link_indices);
+				psi.replaceLinkInds(link_indices);
 			}
 		}
 

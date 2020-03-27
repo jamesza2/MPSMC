@@ -32,6 +32,7 @@ int main(int argc, char *argv[]){
 	double Jz = input.getDouble("Jz");
 	double h = input.getDouble("external_field");
 	int num_iterations = input.getInteger("num_iterations");
+	double threshhold = input.getDouble("threshhold");
 	//std::string mps_file_name = input.GetVariable("mps_file_name");
 	std::string out_file_name = input.GetVariable("out_file");
 	
@@ -57,7 +58,7 @@ int main(int argc, char *argv[]){
 	std::ofstream out_file(out_file_name);
 	out_file << "Energy|Bond Dimension|Max Sz" << endl;
 	for(int iteration = 0; iteration < num_iterations; iteration++){
-		sys.iterate_simple();
+		sys.iterate_simple(threshhold);
 		double energy = sys.expectation_value(H);
 		energy = energy/num_sites;
 		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has energy " << energy << endl;
