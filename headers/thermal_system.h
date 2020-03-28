@@ -161,7 +161,7 @@ class ThermalSystem{
 		}
 
 
-		void truncate_simple(int max_bd, double threshhold){ //Truncate by removing lowest singular values (keeping up to max_bd singular values) instead of randomly selecting values
+		void truncate_simple(double threshhold){ //Truncate by removing lowest singular values (keeping up to max_bd singular values) instead of randomly selecting values
 			int num_sites = itensor::length(psi);
 
 			for(int i = 1; i < num_sites; i++){
