@@ -73,12 +73,22 @@ int main(int argc, char*argv[]){
 	ThermalSystem sys(sites, itev, tau, 1000000, truncated_bds[0]);
 
 	//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
+	int num_setup_iterations = 100;
+	if(input.IsVariable("num_setup_iterations")){
+		num_setup_iterations = input.getInteger("num_setup_iterations");
+	}
+	for(int i = 0; i < num_setup_iterations; i++){
+		sys.iterate_single();
+	}
 	while(itensor::maxLinkDim(sys.psi) <= max_bd){
 		sys.iterate_single_no_truncation();
 	}
 
 	itensor::MPS original_psi = sys.copy_state();
 
+	if(input.IsVariable("original_MPS_file")){
+		itensor::writeToFile(input.GetVariable("original_MPS_file"), original_psi);
+	}
 	
 	itensor::InitState random_config_init(sites, "Up");
 	if((method == "random")||(method == "Random")){
