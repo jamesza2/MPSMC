@@ -132,18 +132,32 @@ class ThermalSystem{
 				auto U_original_index = itensor::commonIndex(U,S);
 				std::vector<double> singular_values = abs_diagonal_elems(S);
 				int original_bd = singular_values.size();
-				std::vector<int> random_elements = random_weighted(singular_values, truncated_bd, generator, distribution);
-				std::vector<std::pair<int, int>> repeats = collect_repeats(random_elements);
+				std::vector<int> repeats(original_bd,0); //repeats[i] indicates how many times i was selected
+				int final_truncated_bd = 0;
+				for(int random_index = 0; random_index < truncated_bd; random_index ++){
+					//If the new selected index is not a repeat, random_norm_weighted returns 1
+					final_truncated_bd += random_norm_weighted(singular_values, repeats);
+				}
+				//std::vector<int> random_elements = random_weighted(singular_values, truncated_bd, generator, distribution);
+				//std::vector<std::pair<int, int>> repeats = collect_repeats(random_elements);
 
 				//Turn those random elements into screening matrices to apply to U, S and V
-				int final_truncated_bd = repeats.size();
 				itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(i));
 				itensor::Index T_original_index(original_bd,"original");
 				itensor::Index T_truncated_index_primed = itensor::prime(T_truncated_index, 1);
 				itensor::ITensor T(T_truncated_index, T_original_index);
+				int repeat_index = 1;
+				std::vector<int> truncated_repeats;
+				for(int original_index = 1; original_index <= original_bd; original_index ++){
+					if(repeats[original_index-1] > 0){
+						T.set(T_truncated_index = repeat_index, T_original_index = original_index, 1.0);
+						truncated_repeats.push_back(repeats[original_index-1]);
+					}
+				}
+				/*
 				for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
 					T.set(T_truncated_index = repeat_index, T_original_index = repeats[repeat_index-1].first, 1.0);
-				}
+				}*/
 				
 				//Apply them to U, S and V
 				//Should change U to U*T, S to T*S*T and V to T*S
@@ -152,7 +166,7 @@ class ThermalSystem{
 				S = S*(T*itensor::delta(T_original_index, U_original_index))*(T*itensor::delta(T_original_index,V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
 				//Turn S's diagonal elements into repeat numbers
 				for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
-					S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, 1.0*repeats[repeat_index-1].second/truncated_bd);
+					S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, 1.0*truncated_repeats[repeat_index-1]/truncated_bd);
 				}
 				//Collect new U into current matrix, S*V into the forward matrix
 				psi.ref(i) = U;
@@ -230,6 +244,65 @@ class ThermalSystem{
 
 		double random_double(){
 			return distribution(generator);
+		}
+
+
+		//Selects a random index i weighted by weights[i]*new_norm/old_norm where the norm is sqrt(sum of repeats^2)
+		//Automatically updates the repeats vector and returns 1 if the index was never selected before
+		int random_norm_weighted(std::vector<double> &weights, std::vector<int> &repeats){
+			int old_norm_squared = 0;
+			for(int r : repeats){
+				old_norm_squared += r*r;
+			}
+			double old_norm = std::sqrt(old_norm_squared);
+
+			std::vector<double> cumulative_weights;
+			for(int i = 0; i < weights.size(); i++){
+				double adjusted_weight = weights[i];
+				if(old_norm_squared != 0){
+					adjusted_weight *= std::sqrt(old_norm_squared + 2*repeats[i] + 1)/old_norm;
+				}
+				if(i != 0){
+					adjusted_weight += cumulative_weights[i-1];
+				}
+				cumulative_weights.push_back(adjusted_weight);
+			}
+			double total_weight = cumulative_weights[cumulative_weights.size()-1];
+			double rd = random_double()*total_weight;
+			int L = 0;
+			int R = cumulative_weights.size()-1;
+			int selected_index = 0;
+			while(true){
+				if(L == R){
+					selected_index = L;
+					break;
+				}
+				if(L > R){
+					std::cerr << "ERROR: Binary search failed because Left end = " << L << " while Right end = " << R << std::endl;
+					selected_index = -1;
+					break;
+				}
+				int M = std::rint((L+R)/2);
+				if(rd > cumulative_weights[M]){
+					L = M+1;
+					continue;
+				}
+				if(M == 0){
+					selected_index = 0;
+					break;
+				}
+				if(rd < cumulative_weights[M-1]){
+					R = M-1;
+					continue;
+				}
+				selected_index = M;
+				break;
+			}
+			repeats[selected_index] += 1;
+			if(repeats[selected_index] == 1){
+				return 1;
+			}
+			return 0;
 		}
 
 		//Picks a random integer between 0 and len(weights), weighted by the weights std::vector.
