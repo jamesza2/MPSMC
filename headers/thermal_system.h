@@ -151,6 +151,7 @@ class ThermalSystem{
 				for(int original_index = 1; original_index <= original_bd; original_index ++){
 					if(repeats[original_index-1] > 0){
 						T.set(T_truncated_index = repeat_index, T_original_index = original_index, 1.0);
+						repeat_index += 1;
 						truncated_repeats.push_back(repeats[original_index-1]);
 					}
 				}
