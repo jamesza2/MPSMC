@@ -172,8 +172,8 @@ int main(int argc, char*argv[]){
 			truncations_max.push_back(((float)(sys.get_max_bd()))/itensor::maxLinkDim(original_psi));
 			truncations_average.push_back(sys.get_avg_bd()/itensor::averageLinkDim(original_psi));
 
-			if(input.IsVariable(test_energy)){
-				energies.push_back(std::abs(itensor::innerC(sys.psi, H, sys.psi)/itensor::innerC(psi, psi)));
+			if(test_energy){
+				energies.push_back(std::abs(itensor::innerC(sys.psi, H, sys.psi)/itensor::innerC(sys.psi, sys.psi)));
 			}
 
 			std::cerr << "Overlap with configuration: " << ov << " | Old Max BD: " << itensor::maxLinkDim(original_psi) << " | New Max BD: " << sys.get_max_bd() << endl;
