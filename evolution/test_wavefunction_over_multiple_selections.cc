@@ -41,6 +41,10 @@ int main(int argc, char*argv[]){
 	int num_truncations = input.getInteger("num_truncations");
 	std::string method = input.GetVariable("configuration_selection");
 	std::string out_file_name = input.GetVariable("out_file");
+	bool test_energy = false;
+	if(input.IsVariable("test_energy")){
+		test_energy = input.getBool("test_energy");
+	}
 
 	std::cerr << "Read input files" << endl;
 
@@ -88,6 +92,11 @@ int main(int argc, char*argv[]){
 
 	if(input.IsVariable("original_MPS_file")){
 		itensor::writeToFile(input.GetVariable("original_MPS_file"), original_psi);
+	}
+
+	double original_energy = 0;
+	if(test_energy){
+		original_energy = std::abs(itensor::innerC(original_psi, H, original_psi)/itensor::innerC(original_psi, original_psi));
 	}
 	
 	itensor::InitState random_config_init(sites, "Up");
@@ -147,12 +156,14 @@ int main(int argc, char*argv[]){
 	time_t start_time = std::time(NULL);
 	vector<double> average_max_truncation;
 	vector<double> average_average_truncation;
+	vector<double> average_energies;
 	for(int i = 0; i < truncated_bds.size(); i++){
 		int num_selections = truncated_bds[i];
 		sys.set_truncated_bd(num_selections);
 		vector<double> overlaps;
 		vector<double> truncations_max;
 		vector<double> truncations_average;
+		vector<double> energies;
 		for(int i = 0; i < num_truncations; i++){
 			sys.set_MPS(original_psi);
 			sys.truncate();
@@ -160,6 +171,11 @@ int main(int argc, char*argv[]){
 			overlaps.push_back(ov);
 			truncations_max.push_back(((float)(sys.get_max_bd()))/itensor::maxLinkDim(original_psi));
 			truncations_average.push_back(sys.get_avg_bd()/itensor::averageLinkDim(original_psi));
+
+			if(input.IsVariable(test_energy)){
+				energies.push_back(std::abs(itensor::innerC(sys.psi, H, sys.psi)/itensor::innerC(psi, psi)));
+			}
+
 			std::cerr << "Overlap with configuration: " << ov << " | Old Max BD: " << itensor::maxLinkDim(original_psi) << " | New Max BD: " << sys.get_max_bd() << endl;
 			//double fid = sys.overlap(original_psi);
 			//std::cerr << "Fidelity with original state: " << fid << "(" << i+1 << "/" << num_truncations << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
@@ -169,6 +185,7 @@ int main(int argc, char*argv[]){
 		average_overlaps.push_back(average_overlap);
 		average_max_truncation.push_back(sum(truncations_max)/truncations_max.size());
 		average_average_truncation.push_back(sum(truncations_average)/truncations_max.size());
+		average_energies.push_back(sum(energies)/truncations_max.size());
 		std::cerr << "Original overlap: " << original_overlap << " Final average overlap: " << average_overlap << " (" << i+1 << "/" << truncated_bds.size() << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
 		start_time = time(NULL);
 	}
@@ -195,6 +212,13 @@ int main(int argc, char*argv[]){
 		out_file << "\n" << average_truncation;
 	}
 	out_file << "\n#ORIGINAL_BOND_DIMENSION:\n" << itensor::maxLinkDim(original_psi);
+	if(test_energy){
+		out_file << "\n#ORIGINAL_ENERGY:\n" << original_energy;
+		out_file << "\n#AVERAGE_ENERGY:";
+		for(double average_energy : average_energies){
+			out_file << "\n" << average_energy;
+		}
+	}
 	out_file.close();
 
 }
