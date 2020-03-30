@@ -148,7 +148,7 @@ class ThermalSystem{
 					test_wavefunction_valid = random_double()*max_norm/norm;
 					num_rejects += 1;
 				}
-				std::cerr << "Selected configuration of " << final_truncated_bd << " unique values after " << num_rejects << " rejections" << endl;
+				std::cerr << "Selected configuration of " << final_truncated_bd << " unique values after " << num_rejects << " rejections" << std::endl;
 				/*
 				for(int random_index = 0; random_index < truncated_bd; random_index ++){
 					//If the new selected index is not a repeat, random_norm_weighted returns 1
@@ -323,7 +323,7 @@ class ThermalSystem{
 
 		//Picks a random integer between 0 and len(weights), weighted by the weights std::vector.
 		//Stores data in the repeats vector and returns the number of unique selections
-		int random_weighted(std::vector<double> weights, int num_picks, std::vector<double> &repeats){
+		int random_weighted(std::vector<double> weights, int num_picks, std::vector<int> &repeats){
 			std::vector<double> cumulative_weights;
 			cumulative_weights.push_back(weights[0]);
 			for(int i = 1; i < weights.size(); i++){
