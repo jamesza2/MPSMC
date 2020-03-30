@@ -70,7 +70,7 @@ int main(int argc, char*argv[]){
 
 	std::cerr << "Constructing initial High-BD state..." << endl;
 
-	ThermalSystem sys(sites, itev, tau, 1000000, truncated_bds[0]);
+	ThermalSystem sys(sites, itev, tau, max_bd, truncated_bds[0]);
 
 	//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
 	int num_setup_iterations = 100;
