@@ -134,10 +134,26 @@ class ThermalSystem{
 				int original_bd = singular_values.size();
 				std::vector<int> repeats(original_bd,0); //repeats[i] indicates how many times i was selected
 				int final_truncated_bd = 0;
+				double test_wavefunction_valid = 100;
+				double max_norm = std::sqrt(truncated_bd);
+				int num_rejects = -1;
+				while(test_wavefunction_valid > 1){
+					std::fill(repeats.begin(), repeats.end(), 0);
+					final_truncated_bd = random_weighted(singular_values, truncated_bd, repeats);
+					double norm = 0;
+					for(int r : repeats){
+						norm += r*r;
+					}
+					norm = std::sqrt(norm);
+					test_wavefunction_valid = random_double()*max_norm/norm;
+					num_rejects += 1;
+				}
+				std::cerr << "Selected configuration of " << final_truncated_bd << " unique values after " << num_rejects << " rejections" << endl;
+				/*
 				for(int random_index = 0; random_index < truncated_bd; random_index ++){
 					//If the new selected index is not a repeat, random_norm_weighted returns 1
 					final_truncated_bd += random_norm_weighted(singular_values, repeats);
-				}
+				}*/
 				//std::vector<int> random_elements = random_weighted(singular_values, truncated_bd, generator, distribution);
 				//std::vector<std::pair<int, int>> repeats = collect_repeats(random_elements);
 
@@ -247,7 +263,6 @@ class ThermalSystem{
 			return distribution(generator);
 		}
 
-
 		//Selects a random index i weighted by weights[i]*new_norm/old_norm where the norm is sqrt(sum of repeats^2)
 		//Automatically updates the repeats vector and returns 1 if the index was never selected before
 		int random_norm_weighted(std::vector<double> &weights, std::vector<int> &repeats){
@@ -307,7 +322,8 @@ class ThermalSystem{
 		}
 
 		//Picks a random integer between 0 and len(weights), weighted by the weights std::vector.
-		std::vector<int> random_weighted(std::vector<double> weights, int num_picks, std::mt19937 &generator, std::uniform_real_distribution<double> &distribution){
+		//Stores data in the repeats vector and returns the number of unique selections
+		int random_weighted(std::vector<double> weights, int num_picks, std::vector<double> &repeats){
 			std::vector<double> cumulative_weights;
 			cumulative_weights.push_back(weights[0]);
 			for(int i = 1; i < weights.size(); i++){
@@ -318,18 +334,22 @@ class ThermalSystem{
 			for(int i = 0; i < num_picks; i++){
 				rd.push_back(random_double()*total_weight);
 			}
-			std::vector<int> random_elements;
+			//std::vector<int> random_elements;
+			int num_unique_selections = 0;
 			for(double spork:rd){
 				int L = 0;
 				int R = cumulative_weights.size()-1;
+				int random_element = 0;
 				while(true){
 					if(L == R){
-						random_elements.push_back(L+1);
+						random_element = L;
+						//random_elements.push_back(L+1);
 						break;
 					}
 					if(L > R){
 						std::cerr << "ERROR: Binary search failed because Left end = " << L << " while Right end = " << R << std::endl;
-						random_elements.push_back(-1);
+						random_element = -1;
+						//random_elements.push_back(-1);
 						break;
 					}
 					int M = std::rint((L+R)/2);
@@ -338,18 +358,25 @@ class ThermalSystem{
 						continue;
 					}
 					if(M == 0){
-						random_elements.push_back(1);
+						random_element = 0;
+						//random_elements.push_back(1);
 						break;
 					}
 					if(spork < cumulative_weights[M-1]){
 						R = M-1;
 						continue;
 					}
-					random_elements.push_back(M+1);
+					random_element = M;
+					//random_elements.push_back(M+1);
 					break;
 				}
+				if(repeats[random_element] == 0){
+					num_unique_selections += 1;
+				}
+				repeats[random_element] += 1;
 			}
-			return random_elements;
+
+			return num_unique_selections;
 
 		}
 
