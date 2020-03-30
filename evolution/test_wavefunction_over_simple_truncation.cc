@@ -41,6 +41,10 @@ int main(int argc, char*argv[]){
 	std::string method = input.GetVariable("configuration_selection");
 	std::string out_file_name = input.GetVariable("out_file");
 	double threshhold = input.getDouble("threshhold");
+	bool test_energy = false;
+	if(input.IsVariable("test_energy")){
+		test_energy = input.getBool("test_energy");
+	}
 
 	std::cerr << "Read input files" << endl;
 
@@ -79,6 +83,10 @@ int main(int argc, char*argv[]){
 
 	itensor::MPS original_psi = sys.copy_state();
 
+	double original_energy = 0;
+	if(test_energy){
+		original_energy = std::abs(itensor::innerC(original_psi, H, original_psi)/itensor::innerC(original_psi, original_psi));
+	}
 	
 	itensor::InitState random_config_init(sites, "Up");
 	if((method == "random")||(method == "Random")){
@@ -137,6 +145,7 @@ int main(int argc, char*argv[]){
 	time_t start_time = std::time(NULL);
 	vector<double> average_max_truncation;
 	vector<double> average_average_truncation;
+	vector<double> energies;
 	for(int i = 0; i < truncated_bds.size(); i++){
 		int num_selections = truncated_bds[i];
 		sys.set_truncated_bd(num_selections);
@@ -148,6 +157,11 @@ int main(int argc, char*argv[]){
 		average_overlaps.push_back(ov);
 		average_max_truncation.push_back(truncation_max);
 		average_average_truncation.push_back(truncation_average);
+
+		if(test_energy){
+			energies.push_back(std::abs(itensor::innerC(sys.psi, H, sys.psi)/itensor::innerC(sys.psi, sys.psi)));
+		}
+
 		std::cerr << "Original overlap: " << original_overlap << " Final overlap: " << ov << " (" << i+1 << "/" << truncated_bds.size() << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
 		start_time = time(NULL);
 	}
@@ -174,6 +188,13 @@ int main(int argc, char*argv[]){
 		out_file << "\n" << average_truncation;
 	}
 	out_file << "\n#ORIGINAL_BOND_DIMENSION:\n" << itensor::maxLinkDim(original_psi);
+	if(test_energy){
+		out_file << "\n#ORIGINAL_ENERGY:\n" << original_energy;
+		out_file << "\n#AVERAGE_ENERGY:";
+		for(double energy : energies){
+			out_file << "\n" << energy;
+		}
+	}
 	out_file.close();
 
 }
