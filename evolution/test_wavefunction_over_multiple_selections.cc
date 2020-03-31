@@ -171,7 +171,7 @@ int main(int argc, char*argv[]){
 			sys.truncate();
 			double ov = sys.overlap(random_config);
 			overlaps.push_back(ov);
-			error_corrected_overlaps.push_back(ov/estimated_error);
+			error_corrected_overlaps.push_back(ov/sys.estimated_error);
 			truncations_max.push_back(((float)(sys.get_max_bd()))/itensor::maxLinkDim(original_psi));
 			truncations_average.push_back(sys.get_avg_bd()/itensor::averageLinkDim(original_psi));
 
