@@ -148,7 +148,7 @@ int main(int argc, char*argv[]){
 	for(int i = 0; i < num_truncations; i++){
 		sys.estimated_error = 1.0;
 		sys.set_MPS(original_psi);
-		sys.truncate_single_site(site, weight_by_norm = false);
+		sys.truncate_single_site(site, false);
 		double ov = sys.overlap(random_config);
 		overlaps.push_back(ov);
 		error_corrected_overlaps.push_back(ov/sys.estimated_error);
