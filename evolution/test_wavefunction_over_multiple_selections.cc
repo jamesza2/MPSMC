@@ -164,11 +164,14 @@ int main(int argc, char*argv[]){
 		vector<double> truncations_max;
 		vector<double> truncations_average;
 		vector<double> energies;
+		vector<double> error_corrected_overlaps;
 		for(int i = 0; i < num_truncations; i++){
+			sys.estimated_error = 1.0;
 			sys.set_MPS(original_psi);
 			sys.truncate();
 			double ov = sys.overlap(random_config);
 			overlaps.push_back(ov);
+			error_corrected_overlaps.push_back(ov/estimated_error);
 			truncations_max.push_back(((float)(sys.get_max_bd()))/itensor::maxLinkDim(original_psi));
 			truncations_average.push_back(sys.get_avg_bd()/itensor::averageLinkDim(original_psi));
 
@@ -176,7 +179,7 @@ int main(int argc, char*argv[]){
 				energies.push_back(std::abs(itensor::innerC(sys.psi, H, sys.psi)/itensor::innerC(sys.psi, sys.psi)));
 			}
 
-			std::cerr << "Overlap with configuration: " << ov << " | Old Max BD: " << itensor::maxLinkDim(original_psi) << " | New Max BD: " << sys.get_max_bd() << endl;
+			std::cerr << "Overlap with configuration: " << ov << " | Estimated Error: " << estimated_error << " | New Max BD: " << sys.get_max_bd() << endl;
 			//double fid = sys.overlap(original_psi);
 			//std::cerr << "Fidelity with original state: " << fid << "(" << i+1 << "/" << num_truncations << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
 			

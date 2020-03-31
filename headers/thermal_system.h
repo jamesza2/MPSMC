@@ -16,6 +16,7 @@ class ThermalSystem{
 		double tau; //Iterate it N times to time evolve by beta = N*tau
 		int max_bd;
 		int truncated_bd;
+		double estimated_error;
 		std::mt19937 generator;
 		std::uniform_real_distribution<double> distribution;
 
@@ -30,6 +31,7 @@ class ThermalSystem{
 			tau = tau_input;
 			max_bd = max_bond_dimension_input;
 			truncated_bd = truncated_bond_dimension_input;
+			estimated_error = 1.0;
 			distribution = std::uniform_real_distribution<double>(0.0, 1.0);
 		}
 
@@ -111,7 +113,7 @@ class ThermalSystem{
 			truncated_bd = new_truncated_bd;
 		}
 
-		void truncate(){
+		void truncate(bool weight_by_norm = true){
 			//std::cerr << "Truncating MPS..." << std::endl;
 			int num_sites = itensor::length(psi);
 			//std::mt19937 generator;
@@ -135,20 +137,32 @@ class ThermalSystem{
 				std::vector<int> repeats(original_bd,0); //repeats[i] indicates how many times i was selected
 				int final_truncated_bd = 0;
 				double test_wavefunction_valid = 100;
-				double max_norm = std::sqrt(truncated_bd);
+				double max_norm = truncated_bd;
 				int num_rejects = -1;
+				double norm = 0;
 				while(test_wavefunction_valid > 1){
 					std::fill(repeats.begin(), repeats.end(), 0);
 					final_truncated_bd = random_weighted(singular_values, truncated_bd, repeats);
-					double norm = 0;
+					norm = 0;
 					for(int r : repeats){
 						norm += r*r;
 					}
 					norm = std::sqrt(norm);
-					test_wavefunction_valid = random_double()*max_norm/norm;
+					if(weight_by_norm){
+						test_wavefunction_valid = random_double()*max_norm/norm;
+					}
+					else{
+						test_wavefunction_valid = 0;
+					}
 					num_rejects += 1;
 				}
-				std::cerr << "Selected configuration of " << final_truncated_bd << " unique values after " << num_rejects << " rejections" << std::endl;
+				double old_norm = 0;
+				for(double sv : singular_values){
+					old_norm += sv*sv;
+				}
+				old_norm = std::sqrt(old_norm);
+				estimated_error *= std::pow(old_norm/sum(singular_values), 1.0/std::sqrt(truncated_bd));
+				//std::cerr << "Selected configuration of " << final_truncated_bd << " unique values after " << num_rejects << " rejections" << std::endl;
 				/*
 				for(int random_index = 0; random_index < truncated_bd; random_index ++){
 					//If the new selected index is not a repeat, random_norm_weighted returns 1
@@ -183,7 +197,7 @@ class ThermalSystem{
 				S = S*(T*itensor::delta(T_original_index, U_original_index))*(T*itensor::delta(T_original_index,V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
 				//Turn S's diagonal elements into repeat numbers
 				for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
-					S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, 1.0*truncated_repeats[repeat_index-1]/truncated_bd);
+					S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, 1.0*truncated_repeats[repeat_index-1]/norm);
 				}
 				//Collect new U into current matrix, S*V into the forward matrix
 				psi.ref(i) = U;
