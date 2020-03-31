@@ -105,6 +105,10 @@ class ThermalSystem{
 			max_bd = new_max_bd;
 		}
 
+		void set_truncated_bd(int new_truncated_bd){
+			truncated_bd = new_truncated_bd;
+		}
+
 		int get_avg_bd(){
 			return itensor::averageLinkDim(psi);
 		}
