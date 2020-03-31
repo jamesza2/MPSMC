@@ -113,6 +113,83 @@ class ThermalSystem{
 			truncated_bd = new_truncated_bd;
 		}
 
+		void truncate_single_site(int site, bool weight_by_norm = true){
+			auto site_tensor = psi(site);
+			auto neighbor_tensor = psi(site+1);
+			auto combined_tensor = site_tensor*neighbor_tensor;
+			auto left_site = itensor::siteIndex(psi, site);
+			itensor::IndexSet Uindices = {left_site};
+			if(i > 1){
+				auto left_link = itensor::leftLinkIndex(psi, site);
+				Uindices = itensor::unionInds(left_link, Uindices);
+			}
+			auto [U,S,V] = itensor::svd(combined_tensor, Uindices);
+			auto V_original_index = itensor::commonIndex(S,V);
+			auto U_original_index = itensor::commonIndex(U,S);
+			std::vector<double> singular_values = abs_diagonal_elems(S);
+			int original_bd = singular_values.size();
+			std::vector<int> repeats(original_bd,0); //repeats[i] indicates how many times i was selected
+			int final_truncated_bd = 0;
+			double test_wavefunction_valid = 100;
+			double max_norm = truncated_bd;
+			int num_rejects = -1;
+			double norm = 0;
+			while(test_wavefunction_valid > 1){
+				std::fill(repeats.begin(), repeats.end(), 0);
+				final_truncated_bd = random_weighted(singular_values, truncated_bd, repeats);
+				norm = 0;
+				for(int r : repeats){
+					norm += r*r;
+				}
+				norm = std::sqrt(norm);
+				if(weight_by_norm){
+					test_wavefunction_valid = random_double()*max_norm/norm;
+				}
+				else{
+					test_wavefunction_valid = 0;
+				}
+				num_rejects += 1;
+			}
+			double old_norm = 0;
+			for(double sv : singular_values){
+				old_norm += sv*sv;
+			}
+			old_norm = std::sqrt(old_norm);
+			estimated_error *= std::pow(old_norm/sum(singular_values), 1.0/std::sqrt(truncated_bd));
+
+			//Turn those random elements into screening matrices to apply to U, S and V
+			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(i));
+			itensor::Index T_original_index(original_bd,"original");
+			itensor::Index T_truncated_index_primed = itensor::prime(T_truncated_index, 1);
+			itensor::ITensor T(T_truncated_index, T_original_index);
+			int repeat_index = 1;
+			std::vector<int> truncated_repeats;
+			for(int original_index = 1; original_index <= original_bd; original_index ++){
+				if(repeats[original_index-1] > 0){
+					T.set(T_truncated_index = repeat_index, T_original_index = original_index, 1.0);
+					repeat_index += 1;
+					truncated_repeats.push_back(repeats[original_index-1]);
+				}
+			}
+			
+			//Apply them to U, S and V
+			//Should change U to U*T, S to T*S*T and V to T*S
+			V = V*(T*itensor::delta(T_original_index, V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
+			U = U*(T*itensor::delta(T_original_index, U_original_index));
+			S = S*(T*itensor::delta(T_original_index, U_original_index))*(T*itensor::delta(T_original_index,V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
+			//Turn S's diagonal elements into repeat numbers
+			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
+				S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, 1.0*truncated_repeats[repeat_index-1]/norm);
+			}
+			//Collect new U into current matrix, S*V into the forward matrix
+			psi.ref(site) = U;
+			psi.ref(site+1) = S*V;
+			//Readjust link indices
+			auto link_indices = itensor::linkInds(psi);
+			link_indices(site) = T_truncated_index;
+			psi.replaceLinkInds(link_indices);
+		}
+
 		void truncate(bool weight_by_norm = true){
 			//std::cerr << "Truncating MPS..." << std::endl;
 			int num_sites = itensor::length(psi);
@@ -120,92 +197,7 @@ class ThermalSystem{
 			//std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
 			for(int i = 1; i < num_sites; i++){
-				auto site_tensor = psi(i);
-				auto neighbor_tensor = psi(i+1);
-				auto combined_tensor = site_tensor*neighbor_tensor;
-				auto left_site = itensor::siteIndex(psi, i);
-				itensor::IndexSet Uindices = {left_site};
-				if(i > 1){
-					auto left_link = itensor::leftLinkIndex(psi, i);
-					Uindices = itensor::unionInds(left_link, Uindices);
-				}
-				auto [U,S,V] = itensor::svd(combined_tensor, Uindices);
-				auto V_original_index = itensor::commonIndex(S,V);
-				auto U_original_index = itensor::commonIndex(U,S);
-				std::vector<double> singular_values = abs_diagonal_elems(S);
-				int original_bd = singular_values.size();
-				std::vector<int> repeats(original_bd,0); //repeats[i] indicates how many times i was selected
-				int final_truncated_bd = 0;
-				double test_wavefunction_valid = 100;
-				double max_norm = truncated_bd;
-				int num_rejects = -1;
-				double norm = 0;
-				while(test_wavefunction_valid > 1){
-					std::fill(repeats.begin(), repeats.end(), 0);
-					final_truncated_bd = random_weighted(singular_values, truncated_bd, repeats);
-					norm = 0;
-					for(int r : repeats){
-						norm += r*r;
-					}
-					norm = std::sqrt(norm);
-					if(weight_by_norm){
-						test_wavefunction_valid = random_double()*max_norm/norm;
-					}
-					else{
-						test_wavefunction_valid = 0;
-					}
-					num_rejects += 1;
-				}
-				double old_norm = 0;
-				for(double sv : singular_values){
-					old_norm += sv*sv;
-				}
-				old_norm = std::sqrt(old_norm);
-				estimated_error *= std::pow(old_norm/sum(singular_values), 1.0/std::sqrt(truncated_bd));
-				//std::cerr << "Selected configuration of " << final_truncated_bd << " unique values after " << num_rejects << " rejections" << std::endl;
-				/*
-				for(int random_index = 0; random_index < truncated_bd; random_index ++){
-					//If the new selected index is not a repeat, random_norm_weighted returns 1
-					final_truncated_bd += random_norm_weighted(singular_values, repeats);
-				}*/
-				//std::vector<int> random_elements = random_weighted(singular_values, truncated_bd, generator, distribution);
-				//std::vector<std::pair<int, int>> repeats = collect_repeats(random_elements);
-
-				//Turn those random elements into screening matrices to apply to U, S and V
-				itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(i));
-				itensor::Index T_original_index(original_bd,"original");
-				itensor::Index T_truncated_index_primed = itensor::prime(T_truncated_index, 1);
-				itensor::ITensor T(T_truncated_index, T_original_index);
-				int repeat_index = 1;
-				std::vector<int> truncated_repeats;
-				for(int original_index = 1; original_index <= original_bd; original_index ++){
-					if(repeats[original_index-1] > 0){
-						T.set(T_truncated_index = repeat_index, T_original_index = original_index, 1.0);
-						repeat_index += 1;
-						truncated_repeats.push_back(repeats[original_index-1]);
-					}
-				}
-				/*
-				for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
-					T.set(T_truncated_index = repeat_index, T_original_index = repeats[repeat_index-1].first, 1.0);
-				}*/
-				
-				//Apply them to U, S and V
-				//Should change U to U*T, S to T*S*T and V to T*S
-				V = V*(T*itensor::delta(T_original_index, V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
-				U = U*(T*itensor::delta(T_original_index, U_original_index));
-				S = S*(T*itensor::delta(T_original_index, U_original_index))*(T*itensor::delta(T_original_index,V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
-				//Turn S's diagonal elements into repeat numbers
-				for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
-					S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, 1.0*truncated_repeats[repeat_index-1]/norm);
-				}
-				//Collect new U into current matrix, S*V into the forward matrix
-				psi.ref(i) = U;
-				psi.ref(i+1) = S*V;
-				//Readjust link indices
-				auto link_indices = itensor::linkInds(psi);
-				link_indices(i) = T_truncated_index;
-				psi.replaceLinkInds(link_indices);
+				truncate_single_site(i, weight_by_norm);
 			}
 		}
 
