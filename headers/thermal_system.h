@@ -119,7 +119,7 @@ class ThermalSystem{
 			auto combined_tensor = site_tensor*neighbor_tensor;
 			auto left_site = itensor::siteIndex(psi, site);
 			itensor::IndexSet Uindices = {left_site};
-			if(i > 1){
+			if(site > 1){
 				auto left_link = itensor::leftLinkIndex(psi, site);
 				Uindices = itensor::unionInds(left_link, Uindices);
 			}
@@ -158,7 +158,7 @@ class ThermalSystem{
 			estimated_error *= std::pow(old_norm/sum(singular_values), 1.0/std::sqrt(truncated_bd));
 
 			//Turn those random elements into screening matrices to apply to U, S and V
-			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(i));
+			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(site));
 			itensor::Index T_original_index(original_bd,"original");
 			itensor::Index T_truncated_index_primed = itensor::prime(T_truncated_index, 1);
 			itensor::ITensor T(T_truncated_index, T_original_index);
