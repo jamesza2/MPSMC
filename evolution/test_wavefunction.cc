@@ -147,13 +147,12 @@ int main(int argc, char*argv[]){
 	for(int i = 0; i < num_truncations; i++){
 		sys.estimated_error = 1.0;
 		sys.set_MPS(original_psi);
-		double acquired_estimated_error = 1.0;
+		/*double acquired_estimated_error = 1.0;
 		for(int site_index = 1; site_index < num_sites; site_index ++){
 			sys.truncate_single_site();
 			double site_overlap = sys.overlap(random_config);
 			acquired_estimated_error = sys.estimated_error/acquired_estimated_error;
-			
-		}
+		}*/
 		sys.truncate();
 		double ov = sys.overlap(random_config);
 		overlaps.push_back(ov);
