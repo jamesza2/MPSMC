@@ -149,6 +149,7 @@ class ThermalSystem{
 					test_wavefunction_valid = 0;
 				}
 				num_rejects += 1;
+				std::cerr << "Norm = " << norm << ", test_wavefunction_valid = " << test_wavefunction_valid << endl;
 			}
 			double old_norm = 0;
 			for(double sv : singular_values){
