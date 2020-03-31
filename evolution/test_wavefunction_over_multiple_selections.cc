@@ -153,6 +153,7 @@ int main(int argc, char*argv[]){
 	std::cerr << "Original overlap: " << original_overlap << endl;
 	std::cerr << "Creating truncated overlaps..." << endl;
 	vector<double> average_overlaps;
+	vector<double> average_error_corrected_overlaps;
 	time_t start_time = std::time(NULL);
 	vector<double> average_max_truncation;
 	vector<double> average_average_truncation;
@@ -189,6 +190,7 @@ int main(int argc, char*argv[]){
 		average_max_truncation.push_back(sum(truncations_max)/truncations_max.size());
 		average_average_truncation.push_back(sum(truncations_average)/truncations_max.size());
 		average_energies.push_back(sum(energies)/truncations_max.size());
+		average_error_corrected_overlaps.push_back(sum(error_corrected_overlaps)/num_truncations);
 		std::cerr << "Original overlap: " << original_overlap << " Final average overlap: " << average_overlap << " (" << i+1 << "/" << truncated_bds.size() << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
 		start_time = time(NULL);
 	}
@@ -221,6 +223,10 @@ int main(int argc, char*argv[]){
 		for(double average_energy : average_energies){
 			out_file << "\n" << average_energy;
 		}
+	}
+	out_file << "\n$AVERAGE_ERROR_CORRECTED_OVERLAPS:";
+	for(double average_overlap : average_error_corrected_overlaps){
+		out_file << "\n" << average_overlap;
 	}
 	out_file.close();
 
