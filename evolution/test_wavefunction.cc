@@ -70,8 +70,16 @@ int main(int argc, char*argv[]){
 
 	std::cerr << "Constructing initial High-BD state..." << endl;
 
-	ThermalSystem sys(sites, itev, tau, 1000000, truncated_bd);
+	ThermalSystem sys(sites, itev, tau, max_bd, truncated_bd);
 
+
+	int num_setup_iterations = 100;
+	if(input.IsVariable("num_setup_iterations")){
+		num_setup_iterations = input.getInteger("num_setup_iterations");
+	}
+	for(int i = 0; i < num_setup_iterations; i++){
+		sys.iterate_single();
+	}
 	//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
 	while(itensor::maxLinkDim(sys.psi) <= max_bd){
 		sys.iterate_single_no_truncation();
@@ -79,10 +87,10 @@ int main(int argc, char*argv[]){
 
 	itensor::MPS original_psi = sys.copy_state();
 
-	std::cerr << "Finding a large overlap configuration..." << endl;
-
+	
 	itensor::InitState random_config_init(sites, "Up");
 	if((method == "random")||(method == "Random")){
+		std::cerr << "Finding a random configuration..." << endl;
 		std::mt19937 generator(std::time(NULL));
 		std::string sequence = "";
 		for(int i = 1; i <= num_sites; i++){
@@ -98,6 +106,7 @@ int main(int argc, char*argv[]){
 		std::cerr << "Configuration: " << sequence << endl;
 	}
 	else{
+		std::cerr << "Finding a large overlap configuration..." << endl;
 		auto Sz1_op = itensor::toMPO(opm.SingleSiteSz(1));
 		double Sz1 = sys.expectation_value(Sz1_op);
 		bool Sz1_up = true; //Determines whether the first site in the selected configuration should be up or down
@@ -128,28 +137,38 @@ int main(int argc, char*argv[]){
 	itensor::MPS random_config(random_config_init);
 	
 
-	double original_overlap = std::real(itensor::innerC(original_psi, random_config))/std::sqrt(std::abs(itensor::innerC(original_psi, original_psi)*itensor::innerC(random_config, random_config)));
+	//double original_overlap = std::real(itensor::innerC(original_psi, random_config))/std::sqrt(std::abs(itensor::innerC(original_psi, original_psi)*itensor::innerC(random_config, random_config)));
+	double original_overlap = sys.overlap(random_config);
 	std::cerr << "Original overlap: " << original_overlap << endl;
 	std::cerr << "Creating truncated overlaps..." << endl;
 	vector<double> overlaps;
+	vector<double> error_corrected_overlaps;
 	time_t start_time = std::time(NULL);
 	for(int i = 0; i < num_truncations; i++){
+		sys.estimated_error = 1.0;
 		sys.set_MPS(original_psi);
 		sys.truncate();
 		double ov = sys.overlap(random_config);
 		overlaps.push_back(ov);
-		std::cerr << "Overlap with configuration: " << ov << endl;
+		error_corrected_overlaps.push_back(ov/sys.estimated_error);
+		std::cerr << "Overlap with configuration: " << ov << " | Estimated Error: " << sys.estimated_error << endl;
 		double fid = sys.overlap(original_psi);
 		std::cerr << "Fidelity with original state: " << fid << "(" << i+1 << "/" << num_truncations << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
+		
 		start_time = time(NULL);
 	}
 
 	std::cerr << "Original overlap: " << original_overlap << " Final average overlap: " << sum(overlaps)/num_truncations << endl;
+	std::cerr << "Average error corrected overlap: " << sum(error_corrected_overlaps)/num_truncations << endl;
 
 	ofstream out_file(out_file_name);
 	out_file << "#ORIGINAL_OVERLAP:\n" << original_overlap << "\n";
 	out_file << "#TRUNCATED_OVERLAPS:";
 	for(double overlap : overlaps){
+		out_file << "\n" << overlap;
+	}
+	out_file << "#ERROR_CORRECTED_OVERLAPS:";
+	for(double overlap : error_corrected_overlaps){
 		out_file << "\n" << overlap;
 	}
 	out_file.close();
