@@ -179,7 +179,7 @@ int main(int argc, char*argv[]){
 				energies.push_back(std::abs(itensor::innerC(sys.psi, H, sys.psi)/itensor::innerC(sys.psi, sys.psi)));
 			}
 
-			std::cerr << "Overlap with configuration: " << ov << " | Estimated Error: " << estimated_error << " | New Max BD: " << sys.get_max_bd() << endl;
+			std::cerr << "Overlap with configuration: " << ov << " | Estimated Error: " << sys.estimated_error << " | New Max BD: " << sys.get_max_bd() << endl;
 			//double fid = sys.overlap(original_psi);
 			//std::cerr << "Fidelity with original state: " << fid << "(" << i+1 << "/" << num_truncations << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
 			
