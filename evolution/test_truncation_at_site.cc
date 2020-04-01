@@ -154,7 +154,7 @@ int main(int argc, char*argv[]){
 		double ov;
 		std::cerr << "Overlaps per site and estimated errors: ";
 		for(int site_index = 0; site_index < sites.size(); site_index++){
-			sys.truncate_single_site(site, false);
+			sys.truncate_single_site(sites[site_index], false);
 			ov = sys.overlap(random_config);
 			std::cerr << ov << " " << sys.estimated_error << " | ";
 		}
