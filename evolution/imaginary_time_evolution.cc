@@ -34,6 +34,7 @@ int main(int argc, char *argv[]){
 	int num_iterations = input.getInteger("num_iterations");
 	//std::string mps_file_name = input.GetVariable("mps_file_name");
 	std::string out_file_name = input.GetVariable("out_file");
+	
 
 	std::cerr << "Read input files" << endl;
 

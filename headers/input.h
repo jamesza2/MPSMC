@@ -52,11 +52,21 @@ class InputClass
   {
     return atof(myString.c_str());
   }
+
+  bool testBool(string myString, bool def = false){
+    if(IsVariable(myString)){
+      return toBool(GetVariable(myString));
+    }
+    else{
+      return def;
+    }
+  }
+
   bool toBool(string myString)
   {
-    if (myString=="True")
+    if ((myString=="True") || (myString=="true"))
       return true;
-    else if (myString=="False")
+    else if ((myString=="False") || (myString=="false"))
       return false;
     cerr<<"You have a boolean which is neither true nor false"<<endl;
     exit(1);

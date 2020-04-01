@@ -45,6 +45,7 @@ int main(int argc, char*argv[]){
 	if(input.IsVariable("test_energy")){
 		test_energy = input.getBool("test_energy");
 	}
+	bool keep_weight = input.testBool("keep_weight", false);
 
 	std::cerr << "Read input files" << endl;
 
@@ -54,27 +55,10 @@ int main(int argc, char*argv[]){
 	itensor::MPO itev = itensor::toExpH(ampo, tau);
 	itensor::MPO H = itensor::toMPO(ampo);
 
-	//std::cerr << "Generating random spin configuration..." << endl;
-	//Generate a random configuration
-	/*itensor::InitState random_config_init(sites, "Up");
-	std::mt19937 generator(std::time(NULL));
-	std::string sequence = "";
-	for(int i = 1; i <= num_sites; i++){
-		int random_value = generator();
-		if(random_value % 2 == 1){
-			random_config_init.set(i, "Dn");
-			sequence += "D";
-		}
-		else{
-			sequence += "U";
-		}
-	}
-	std::cerr << "Configuration: " << sequence << endl;
-	itensor::MPS random_config(random_config_init);*/
-
 	std::cerr << "Constructing initial High-BD state..." << endl;
 
 	ThermalSystem sys(sites, itev, tau, max_bd, truncated_bd);
+	sys.keep_weight = keep_weight;
 
 	//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
 	int num_setup_iterations = 100;

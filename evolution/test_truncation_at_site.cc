@@ -170,7 +170,7 @@ int main(int argc, char*argv[]){
 	for(double overlap : overlaps){
 		out_file << "\n" << overlap;
 	}
-	out_file << "#\nERROR_CORRECTED_OVERLAPS:";
+	out_file << "\n#ERROR_CORRECTED_OVERLAPS:";
 	for(double overlap : error_corrected_overlaps){
 		out_file << "\n" << overlap;
 	}

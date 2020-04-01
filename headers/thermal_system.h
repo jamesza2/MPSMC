@@ -18,6 +18,7 @@ class ThermalSystem{
 		int truncated_bd;
 		double estimated_error;
 		std::mt19937 generator;
+		bool keep_weight;
 		std::uniform_real_distribution<double> distribution;
 
 		ThermalSystem(itensor::SiteSet &sites, 
@@ -32,6 +33,7 @@ class ThermalSystem{
 			max_bd = max_bond_dimension_input;
 			truncated_bd = truncated_bond_dimension_input;
 			estimated_error = 1.0;
+			keep_weight = false;
 			distribution = std::uniform_real_distribution<double>(0.0, 1.0);
 		}
 
@@ -165,9 +167,11 @@ class ThermalSystem{
 			itensor::ITensor T(T_truncated_index, T_original_index);
 			int repeat_index = 1;
 			std::vector<int> truncated_repeats;
+			std::vector<int> original_indices;
 			for(int original_index = 1; original_index <= original_bd; original_index ++){
 				if(repeats[original_index-1] > 0){
 					T.set(T_truncated_index = repeat_index, T_original_index = original_index, 1.0);
+					original_indices.push_back(original_index);
 					repeat_index += 1;
 					truncated_repeats.push_back(repeats[original_index-1]);
 				}
@@ -180,6 +184,10 @@ class ThermalSystem{
 			S = S*(T*itensor::delta(T_original_index, U_original_index))*(T*itensor::delta(T_original_index,V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
 			//Turn S's diagonal elements into repeat numbers
 			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
+				double new_weight = 1.0*truncated_repeats[repeat_index-1]/norm;
+				if(keep_weight){
+					new_weight = singular_values[original_indices[repeat_index-1]];
+				}
 				S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, 1.0*truncated_repeats[repeat_index-1]/norm);
 			}
 			//Collect new U into current matrix, S*V into the forward matrix
@@ -201,7 +209,6 @@ class ThermalSystem{
 				truncate_single_site(i, weight_by_norm);
 			}
 		}
-
 
 		void truncate_simple(double threshhold){ //Truncate by removing lowest singular values (keeping up to max_bd singular values) instead of randomly selecting values
 			int num_sites = itensor::length(psi);

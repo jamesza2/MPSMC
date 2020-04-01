@@ -288,6 +288,17 @@ int main(int argc, char *argv[]){
 	//Create XXZ Hamiltonian
 
 	itensor::SiteSet sites = itensor::SpinHalf(num_sites, {"ConserveQNs=", false});
+
+	OperatorMaker opm(sites);
+	auto ampo = opm.XXZHamiltonian(Jz, h);
+	itensor::MPO itev = itensor::toExpH(ampo, tau);
+	itensor::MPO H = itensor::toMPO(ampo);
+
+	auto avg_Sz_ampo = opm.AverageSz();
+	itensor::MPO avg_Sz = itensor::toMPO(avg_Sz_ampo);
+	
+
+
 	auto ampo = itensor::AutoMPO(sites);
 	for(int i = 1; i < num_sites; i++){
 		ampo += 0.5,"S+",i,"S-",i+1;
