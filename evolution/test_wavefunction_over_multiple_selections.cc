@@ -57,7 +57,7 @@ int main(int argc, char*argv[]){
 
 	std::cerr << "Constructing initial High-BD state..." << endl;
 
-	ThermalSystem sys(sites, itev, tau, max_bd, truncated_bd);
+	ThermalSystem sys(sites, itev, tau, max_bd, 100);
 	sys.keep_weight = keep_weight;
 
 	//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
@@ -69,7 +69,7 @@ int main(int argc, char*argv[]){
 		sys.iterate_single();
 	}
 
-	sys.set_truncated_bd(truncated_bd);
+	sys.set_truncated_bd(truncated_bds[0]);
 
 	while(itensor::maxLinkDim(sys.psi) <= max_bd){
 		sys.iterate_single_no_truncation();
