@@ -158,7 +158,14 @@ class ThermalSystem{
 				old_norm += sv*sv;
 			}
 			old_norm = std::sqrt(old_norm);
-			estimated_error *= std::pow(old_norm/sum(singular_values), 1.0/std::sqrt(truncated_bd));
+			double alpha = sum(singular_values)/old_norm;
+			if(truncated_bd == 2){
+				estimated_error *= 1/(alpha/std::sqrt(2) + (1-1/std::sqrt(2))/alpha);
+			}
+			else{
+				estimated_error *= std::pow(1.0/alpha, 1.0/std::sqrt(truncated_bd));
+			}
+			
 
 			//Turn those random elements into screening matrices to apply to U, S and V
 			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(site));
