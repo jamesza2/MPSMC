@@ -42,7 +42,7 @@ int main(int argc, char*argv[]){
 	std::string method = input.GetVariable("configuration_selection");
 	std::string out_file_name = input.GetVariable("out_file");
 	//int site = input.getInteger("site");
-	vector<int> sites = input.getVectorInteger("sites");
+	vector<int> site = input.getVectorInteger("site");
 
 	std::cerr << "Read input files" << endl;
 
@@ -153,8 +153,8 @@ int main(int argc, char*argv[]){
 		sys.set_MPS(original_psi);
 		double ov;
 		std::cerr << "Overlaps per site and estimated errors: ";
-		for(int site_index = 0; site_index < sites.size(); site_index++){
-			sys.truncate_single_site(sites[site_index], false);
+		for(int site_index = 0; site_index < site.size(); site_index++){
+			sys.truncate_single_site(site[site_index], false);
 			ov = sys.overlap(random_config);
 			std::cerr << ov << " " << sys.estimated_error << " | ";
 		}
