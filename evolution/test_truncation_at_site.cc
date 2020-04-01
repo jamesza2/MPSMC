@@ -41,7 +41,8 @@ int main(int argc, char*argv[]){
 	int num_truncations = input.getInteger("num_truncations");
 	std::string method = input.GetVariable("configuration_selection");
 	std::string out_file_name = input.GetVariable("out_file");
-	int site = input.getInteger("site");
+	//int site = input.getInteger("site");
+	vector<int> sites = input.getVectorInteger("sites");
 
 	std::cerr << "Read input files" << endl;
 
@@ -150,11 +151,16 @@ int main(int argc, char*argv[]){
 	for(int i = 0; i < num_truncations; i++){
 		sys.estimated_error = 1.0;
 		sys.set_MPS(original_psi);
-		sys.truncate_single_site(site, false);
-		double ov = sys.overlap(random_config);
+		double ov;
+		std::cerr << "Overlaps per site and estimated errors: ";
+		for(int site_index = 0; site_index < sites.size(); site_index++){
+			sys.truncate_single_site(site, false);
+			ov = sys.overlap(random_config);
+			std::cerr << ov << " " << sys.estimated_error << " | ";
+		}
 		overlaps.push_back(ov);
 		error_corrected_overlaps.push_back(ov/sys.estimated_error);
-		std::cerr << "Overlap with configuration: " << ov << " | Estimated Error: " << sys.estimated_error << endl;
+		std::cerr << "\nOverlap with configuration: " << ov << " | Estimated Error: " << sys.estimated_error << endl;
 		double fid = sys.overlap(original_psi);
 		std::cerr << "Fidelity with original state: " << fid << "(" << i+1 << "/" << num_truncations << ", " << std::difftime(time(NULL), start_time) << "s)" <<  endl;
 		
