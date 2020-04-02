@@ -148,6 +148,9 @@ class ThermalSystem{
 				int index_to_change = static_cast<int>(spork*truncated_bd);
 				int proposal = random_cumulative_weighted_single(cumulative_weights);
 				if(proposal == choices[index_to_change]){
+					if(step_number >= num_steps){
+						new_estimated_error += repeats[0]*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(norm_squared(repeats)));
+					}
 					continue;
 				}
 				int old_norm_squared = norm_squared(repeats);
@@ -175,7 +178,12 @@ class ThermalSystem{
 						new_repeats_0 += 1;
 					}
 					double estimation_at_new_position = new_repeats_0*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(new_norm_squared));
-					new_estimated_error += acceptance_probability*estimation_at_new_position + (1-acceptance_probability)*estimation_at_old_position;
+					if(acceptance_probability >= 1){
+						new_estimated_error += estimation_at_new_position;
+					}
+					else{
+						new_estimated_error += acceptance_probability*estimation_at_new_position + (1-acceptance_probability)*estimation_at_old_position;
+					}
 				}
 				if(accept){
 					repeats[proposal] += 1;
@@ -195,7 +203,7 @@ class ThermalSystem{
 					final_truncated_bd += 1;
 				}
 			}
-			
+
 			//Turn those random elements into screening matrices to apply to U, S and V
 			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(site));
 			itensor::Index T_original_index(original_bd,"original");
