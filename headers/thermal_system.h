@@ -187,9 +187,13 @@ class ThermalSystem{
 					std::cerr << "Estimated error from old position: " << estimation_at_old_position << " Estimated error from new position: " << estimation_at_new_position << std::endl;
 				}
 				if(accept){
+					std::cerr << "Accepted move from " << choices[index_to_change] << " to " << proposal << " (probability " << acceptance_probability << ")" << std::endl;
 					repeats[proposal] += 1;
 					repeats[choices[index_to_change]] -= 1;
 					choices[index_to_change] = proposal;
+				}
+				else{
+					std::cerr << "Rejected move from " << choices[index_to_change] << " to " << proposal << " (probability " << acceptance_probability << ")" << std::endl;
 				}
 			}
 			estimated_error *= new_estimated_error/num_samples;
