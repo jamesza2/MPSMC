@@ -46,6 +46,9 @@ int main(int argc, char*argv[]){
 		test_energy = input.getBool("test_energy");
 	}
 	bool keep_weight = input.testBool("keep_weight", false);
+	bool metropolis_sampling = input.testBool("metropolis_sampling", false);
+	int num_metropolis_setup_steps = input.testInt("num_metropolis_setup_steps");
+	int num_metropolis_sample_steps = input.testInt("num_metropolis_sample_steps");
 
 	std::cerr << "Read input files" << endl;
 
@@ -156,7 +159,12 @@ int main(int argc, char*argv[]){
 		for(int i = 0; i < num_truncations; i++){
 			sys.estimated_error = 1.0;
 			sys.set_MPS(original_psi);
-			sys.truncate();
+			if(metropolis_sampling){
+				sys.truncate_metropolis(num_metropolis_setup_steps, num_metropolis_sample_steps);
+			}
+			else{
+				sys.truncate();
+			}
 			double ov = sys.overlap(random_config);
 			overlaps.push_back(ov);
 			error_corrected_overlaps.push_back(ov/sys.estimated_error);
@@ -211,7 +219,7 @@ int main(int argc, char*argv[]){
 			out_file << "\n" << average_energy;
 		}
 	}
-	out_file << "\n$AVERAGE_ERROR_CORRECTED_OVERLAPS:";
+	out_file << "\n#AVERAGE_ERROR_CORRECTED_OVERLAPS:";
 	for(double average_overlap : average_error_corrected_overlaps){
 		out_file << "\n" << average_overlap;
 	}

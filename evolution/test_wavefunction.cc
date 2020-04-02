@@ -42,6 +42,10 @@ int main(int argc, char*argv[]){
 	std::string method = input.GetVariable("configuration_selection");
 	std::string out_file_name = input.GetVariable("out_file");
 
+	bool metropolis_sampling = input.testBool("metropolis_sampling", false);
+	int num_metropolis_setup_steps = input.testInt("num_metropolis_setup_steps");
+	int num_metropolis_sample_steps = input.testInt("num_metropolis_sample_steps");
+
 	std::cerr << "Read input files" << endl;
 
 	itensor::SiteSet sites = itensor::SpinHalf(num_sites, {"ConserveQNs=", false});
@@ -153,7 +157,12 @@ int main(int argc, char*argv[]){
 			double site_overlap = sys.overlap(random_config);
 			acquired_estimated_error = sys.estimated_error/acquired_estimated_error;
 		}*/
-		sys.truncate();
+		if(metropolis_sampling){
+			sys.truncate_metropolis(num_metropolis_setup_steps, num_metropolis_sample_steps);
+		}
+		else{
+			sys.truncate();
+		}
 		double ov = sys.overlap(random_config);
 		overlaps.push_back(ov);
 		error_corrected_overlaps.push_back(ov/sys.estimated_error);

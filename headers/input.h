@@ -53,6 +53,24 @@ class InputClass
     return atof(myString.c_str());
   }
 
+  double testDouble(string myString, double def = 0){
+    if(IsVariable(myString)){
+      return toDouble(GetVariable(myString));
+    }
+    else{
+      return def;
+    }
+  }
+
+  int testInt(string myString, int def = 0){
+    if(IsVariable(myString)){
+      return toInteger(GetVariable(myString));
+    }
+    else{
+      return def;
+    }
+  }
+
   bool testBool(string myString, bool def = false){
     if(IsVariable(myString)){
       return toBool(GetVariable(myString));

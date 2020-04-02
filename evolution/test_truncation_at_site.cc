@@ -43,6 +43,10 @@ int main(int argc, char*argv[]){
 	std::string out_file_name = input.GetVariable("out_file");
 	//int site = input.getInteger("site");
 	vector<int> site = input.getVectorInteger("site");
+	bool metropolis_sampling = input.testBool("metropolis_sampling", false);
+	int num_metropolis_setup_steps = input.testInt("num_metropolis_setup_steps");
+	int num_metropolis_sample_steps = input.testInt("num_metropolis_sample_steps");
+
 
 	std::cerr << "Read input files" << endl;
 
@@ -154,7 +158,12 @@ int main(int argc, char*argv[]){
 		double ov;
 		std::cerr << "Overlaps per site and estimated errors: ";
 		for(int site_index = 0; site_index < site.size(); site_index++){
-			sys.truncate_single_site(site[site_index], false);
+			if(metropolis_sampling){
+				sys.truncate_metropolis_single_site(site[site_index], num_metropolis_setup_steps, num_metropolis_sample_steps);
+			}
+			else{
+				sys.truncate_single_site(site[site_index], false);
+			}
 			ov = sys.overlap(random_config);
 			std::cerr << ov << " " << sys.estimated_error << " | ";
 		}

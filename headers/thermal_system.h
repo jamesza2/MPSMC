@@ -115,6 +115,85 @@ class ThermalSystem{
 			truncated_bd = new_truncated_bd;
 		}
 
+		void truncate_metropolis_single_site(int site, int num_steps, int num_samples){
+			//Will execute
+			auto site_tensor = psi(site);
+			auto neighbor_tensor = psi(site+1);
+			auto combined_tensor = site_tensor*neighbor_tensor;
+			auto left_site = itensor::siteIndex(psi, site);
+			itensor::IndexSet Uindices = {left_site};
+			if(site > 1){
+				auto left_link = itensor::leftLinkIndex(psi, site);
+				Uindices = itensor::unionInds(left_link, Uindices);
+			}
+			auto [U,S,V] = itensor::svd(combined_tensor, Uindices);
+			auto V_original_index = itensor::commonIndex(S,V);
+			auto U_original_index = itensor::commonIndex(U,S);
+			std::vector<double> singular_values = abs_diagonal_elems(S);
+			int original_bd = singular_values.size();
+			std::vector<int> repeats(original_bd,0); 
+			std::vector<int> choices(truncated_bd, 0);
+			//select random configuration
+			for(int i = 0; i < truncated_bd; i++){
+				double spork = random_double();
+				int choice = static_cast<int>(spork*original_bd);
+				repeats[choice] += 1;
+				choices[i] = choice;
+			}
+			double norm_of_original_wavefunction = norm(singular_values);
+			std::vector<double> cumulative_weights = accumulate_weights(singular_values);
+			double new_estimated_error = 0;
+			for(int step_number = 0; step_number < num_steps + num_samples; step_number ++){
+				double spork = random_double();
+				int index_to_change = static_cast<int>(spork*truncated_bd);
+				int proposal = random_cumulative_weighted_single(cumulative_weights);
+				if(proposal == choices[index_to_change]){
+					continue;
+				}
+				int old_norm_squared = norm_squared(repeats);
+				int new_norm_squared = old_norm_squared;
+				new_norm_squared -= -2*repeats[choices[index_to_change]]+1;
+				new_norm_squared += 2*repeats[proposal]+1;
+				double acceptance_probability = std::sqrt(new_norm_squared/old_norm_squared);
+				bool accept = false;
+				if(acceptance_probability >= 1){
+					accept = true;
+				}
+				else{
+					if(random_double() < acceptance_probability){
+						accept = true;
+					}
+				}
+				if(step_number >= num_steps){
+					//sample estimated error
+					estimation_at_old_position = repeats[0]*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(old_norm_squared));
+					int new_repeats_0 = repeats[0];
+					if(choices[index_to_change] == 0){
+						new_repeats_0 -= 1;
+					}
+					if(proposal == 0){
+						new_repeats_0 += 1;
+					}
+					estimation_at_new_position = new_repeats_0*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(new_norm_squared));
+					new_estimated_error += acceptance_probability*estimation_at_new_position + (1-acceptance_probability)*estimation_at_old_position;
+				}
+				if(accept){
+					repeats[proposal] += 1;
+					repeats[choices[index_to_change]] -= 1;
+					choices[index_to_change] = proposal;
+				}
+			}
+			estimated_error *= new_estimated_error/num_samples;
+
+		}
+
+		void truncate_metropolis(int num_steps, int num_samples){
+			int num_sites = itensor::length(psi);
+			for(int i = 1; i < num_sites; i++){
+				truncate_metropolis_single_site(i, num_steps, num_samples);
+			}
+		}
+
 		void truncate_single_site(int site, bool weight_by_norm = true){
 			auto site_tensor = psi(site);
 			auto neighbor_tensor = psi(site+1);
@@ -193,7 +272,7 @@ class ThermalSystem{
 			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
 				double new_weight = 1.0*truncated_repeats[repeat_index-1]/norm;
 				if(keep_weight){
-					new_weight = singular_values[original_indices[repeat_index-1]];
+					new_weight = singular_values[original_indices[repeat_index-1]-1];
 				}
 				S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, 1.0*truncated_repeats[repeat_index-1]/norm);
 			}
@@ -280,8 +359,33 @@ class ThermalSystem{
 			return s;
 		}
 
+		double norm(std::vector<double> v){
+			double n = 0;
+			for(double elem:v){
+				n += elem*elem;
+			}
+			return n;
+		}
+
+		int norm_squared(std::vector<int> v){
+			int ns = 0;
+			for(int elem:v){
+				ns += elem*elem;
+			}
+			return ns;
+		}
+
 		double random_double(){
 			return distribution(generator);
+		}
+
+		std::vector<double> accumulate_weights(std::vector<double> &weights){
+			std::vector<double> cumulative_weights;
+			cumulative_weights.push_back(weights[0]);
+			for(int i = 1; i < weights.size(); i++){
+				cumulative_weights.push_back(weights[i] + cumulative_weights[i-1]);
+			}
+			return cumulative_weights;
 		}
 
 		//Selects a random index i weighted by weights[i]*new_norm/old_norm where the norm is sqrt(sum of repeats^2)
@@ -342,63 +446,65 @@ class ThermalSystem{
 			return 0;
 		}
 
-		//Picks a random integer between 0 and len(weights), weighted by the weights std::vector.
-		//Stores data in the repeats vector and returns the number of unique selections
-		int random_weighted(std::vector<double> weights, int num_picks, std::vector<int> &repeats){
-			std::vector<double> cumulative_weights;
-			cumulative_weights.push_back(weights[0]);
-			for(int i = 1; i < weights.size(); i++){
-				cumulative_weights.push_back(weights[i] + cumulative_weights[i-1]);
-			}
+		int random_cumulative_weighted_single(std::vector<double> cumulative_weights){
 			double total_weight = cumulative_weights[cumulative_weights.size()-1];
-			std::vector<double> rd;
-			for(int i = 0; i < num_picks; i++){
-				rd.push_back(random_double()*total_weight);
-			}
+			double spork = random_double()*total_weight;
 			//std::vector<int> random_elements;
 			int num_unique_selections = 0;
-			for(double spork:rd){
-				int L = 0;
-				int R = cumulative_weights.size()-1;
-				int random_element = 0;
-				while(true){
-					if(L == R){
-						random_element = L;
-						//random_elements.push_back(L+1);
-						break;
-					}
-					if(L > R){
-						std::cerr << "ERROR: Binary search failed because Left end = " << L << " while Right end = " << R << std::endl;
-						random_element = -1;
-						//random_elements.push_back(-1);
-						break;
-					}
-					int M = std::rint((L+R)/2);
-					if(spork > cumulative_weights[M]){
-						L = M+1;
-						continue;
-					}
-					if(M == 0){
-						random_element = 0;
-						//random_elements.push_back(1);
-						break;
-					}
-					if(spork < cumulative_weights[M-1]){
-						R = M-1;
-						continue;
-					}
-					random_element = M;
-					//random_elements.push_back(M+1);
+			int L = 0;
+			int R = cumulative_weights.size()-1;
+			int random_element = 0;
+			while(true){
+				if(L == R){
+					random_element = L;
+					//random_elements.push_back(L+1);
 					break;
 				}
+				if(L > R){
+					std::cerr << "ERROR: Binary search failed because Left end = " << L << " while Right end = " << R << std::endl;
+					random_element = -1;
+					//random_elements.push_back(-1);
+					break;
+				}
+				int M = std::rint((L+R)/2);
+				if(spork > cumulative_weights[M]){
+					L = M+1;
+					continue;
+				}
+				if(M == 0){
+					random_element = 0;
+					//random_elements.push_back(1);
+					break;
+				}
+				if(spork < cumulative_weights[M-1]){
+					R = M-1;
+					continue;
+				}
+				random_element = M;
+				//random_elements.push_back(M+1);
+				break;
+			}
+			return random_element;
+		}
+
+		int random_weighted_single(std::vector<double> &weights){
+			std::vector<double> cumulative_weights = accumulate_weights(weights);
+			return random_cumulative_weighted_single(cumulative_weights);
+		}
+
+		//Picks a random integer between 0 and len(weights), weighted by the weights std::vector.
+		//Stores data in the repeats vector and returns the number of unique selections
+		int random_weighted(std::vector<double> &weights, int num_picks, std::vector<int> &repeats){
+			std::vector<double> cumulative_weights = accumulate_weights(weights);
+			int num_unique_selections = 0;
+			for(int i = 0; i < num_picks; i++){
+				int selected_element = random_cumulative_weighted_single(cumulative_weights);
 				if(repeats[random_element] == 0){
 					num_unique_selections += 1;
 				}
 				repeats[random_element] += 1;
 			}
-
 			return num_unique_selections;
-
 		}
 
 		//Collect repeated instances of n in the vector of integers and count how many times they've been repeated.
