@@ -416,7 +416,7 @@ class ThermalSystem{
 			for(double elem:v){
 				n += elem*elem;
 			}
-			return n;
+			return std::sqrt(n);
 		}
 
 		int norm_squared(std::vector<int> v){
