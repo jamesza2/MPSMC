@@ -184,7 +184,7 @@ class ThermalSystem{
 					else{
 						new_estimated_error += acceptance_probability*estimation_at_new_position + (1-acceptance_probability)*estimation_at_old_position;
 					}
-					std::cerr << "Estimated error from old position: " << estimation_at_old_position << " Estimated error from new position: " << estimation_at_new_position << endl;
+					std::cerr << "Estimated error from old position: " << estimation_at_old_position << " Estimated error from new position: " << estimation_at_new_position << std::endl;
 				}
 				if(accept){
 					repeats[proposal] += 1;
