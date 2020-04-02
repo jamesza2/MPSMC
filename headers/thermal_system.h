@@ -185,22 +185,25 @@ class ThermalSystem{
 			}
 			estimated_error *= new_estimated_error/num_samples;
 
-
+			int final_truncated_bd = 0;
+			std::vector<int> truncated_repeats; //Repeats but with all zero elements removed
+			std::vector<int> original_indices; //The original index that elements in truncated_repeats correspond to
+			for(int original_index = 1; original_index <= original_bd; original_index ++){
+				if(repeats[original_index-1] > 0){
+					original_indices.push_back(original_index);
+					truncated_repeats.push_back(repeats[original_index-1]);
+					final_truncated_bd += 1;
+				}
+			}
+			
 			//Turn those random elements into screening matrices to apply to U, S and V
 			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(site));
 			itensor::Index T_original_index(original_bd,"original");
 			itensor::Index T_truncated_index_primed = itensor::prime(T_truncated_index, 1);
 			itensor::ITensor T(T_truncated_index, T_original_index);
 			int repeat_index = 1;
-			std::vector<int> truncated_repeats; //Repeats but with all zero elements removed
-			std::vector<int> original_indices; //The original index that elements in truncated_repeats correspond to
-			for(int original_index = 1; original_index <= original_bd; original_index ++){
-				if(repeats[original_index-1] > 0){
-					T.set(T_truncated_index = repeat_index, T_original_index = original_index, 1.0);
-					original_indices.push_back(original_index);
-					repeat_index += 1;
-					truncated_repeats.push_back(repeats[original_index-1]);
-				}
+			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
+				T.set(T_truncated_index = repeat_index, T_original_index = original_indices[repeat_index-1], 1.0);
 			}
 			
 			//Apply them to U, S and V
