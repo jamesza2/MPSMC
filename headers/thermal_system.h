@@ -166,7 +166,7 @@ class ThermalSystem{
 				}
 				if(step_number >= num_steps){
 					//sample estimated error
-					estimation_at_old_position = repeats[0]*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(old_norm_squared));
+					double estimation_at_old_position = repeats[0]*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(old_norm_squared));
 					int new_repeats_0 = repeats[0];
 					if(choices[index_to_change] == 0){
 						new_repeats_0 -= 1;
@@ -174,7 +174,7 @@ class ThermalSystem{
 					if(proposal == 0){
 						new_repeats_0 += 1;
 					}
-					estimation_at_new_position = new_repeats_0*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(new_norm_squared));
+					double estimation_at_new_position = new_repeats_0*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(new_norm_squared));
 					new_estimated_error += acceptance_probability*estimation_at_new_position + (1-acceptance_probability)*estimation_at_old_position;
 				}
 				if(accept){
@@ -498,7 +498,7 @@ class ThermalSystem{
 			std::vector<double> cumulative_weights = accumulate_weights(weights);
 			int num_unique_selections = 0;
 			for(int i = 0; i < num_picks; i++){
-				int selected_element = random_cumulative_weighted_single(cumulative_weights);
+				int random_element = random_cumulative_weighted_single(cumulative_weights);
 				if(repeats[random_element] == 0){
 					num_unique_selections += 1;
 				}
