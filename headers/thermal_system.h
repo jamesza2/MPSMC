@@ -157,6 +157,7 @@ class ThermalSystem{
 				int new_norm_squared = old_norm_squared;
 				new_norm_squared -= -2*repeats[choices[index_to_change]]+1;
 				new_norm_squared += 2*repeats[proposal]+1;
+				std::cerr << "Old norm squared: " << old_norm_squared << " New norm squared: " << new_norm_squared << std::endl;
 				double acceptance_probability = std::sqrt(static_cast<double>(new_norm_squared)/old_norm_squared);
 				bool accept = false;
 				if(acceptance_probability >= 1){
