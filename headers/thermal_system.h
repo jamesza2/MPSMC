@@ -171,7 +171,7 @@ class ThermalSystem{
 				for(int rep : repeats){
 					std::cerr << rep << " ";
 				}
-				std::cerr << endl;
+				std::cerr << std::endl;
 				if(step_number >= num_steps){
 					//sample estimated error
 					double estimation_at_old_position = repeats[0]*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(old_norm_squared));
