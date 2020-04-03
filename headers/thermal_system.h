@@ -157,7 +157,7 @@ class ThermalSystem{
 				int new_norm_squared = old_norm_squared;
 				new_norm_squared += -2*repeats[choices[index_to_change]]+1;
 				new_norm_squared += 2*repeats[proposal]+1;
-				std::cerr << "Old norm squared: " << old_norm_squared << " New norm squared: " << new_norm_squared << std::endl;
+				//std::cerr << "Old norm squared: " << old_norm_squared << " New norm squared: " << new_norm_squared << std::endl;
 				double acceptance_probability = std::sqrt(static_cast<double>(new_norm_squared)/old_norm_squared);
 				bool accept = false;
 				if(acceptance_probability >= 1){
@@ -168,11 +168,11 @@ class ThermalSystem{
 						accept = true;
 					}
 				}
-				std::cerr << "Repeats vector: ";
+				/*std::cerr << "Repeats vector: ";
 				for(int rep : repeats){
 					std::cerr << rep << " ";
 				}
-				std::cerr << std::endl;
+				std::cerr << std::endl;*/
 				if(step_number >= num_steps){
 					//sample estimated error
 					double estimation_at_old_position = repeats[0]*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(old_norm_squared));
@@ -190,16 +190,16 @@ class ThermalSystem{
 					else{
 						new_estimated_error += acceptance_probability*estimation_at_new_position + (1-acceptance_probability)*estimation_at_old_position;
 					}
-					std::cerr << "Estimated error from old position: " << estimation_at_old_position << " Estimated error from new position: " << estimation_at_new_position << std::endl;
+					//std::cerr << "Estimated error from old position: " << estimation_at_old_position << " Estimated error from new position: " << estimation_at_new_position << std::endl;
 				}
 				if(accept){
-					std::cerr << "Accepted move from " << choices[index_to_change] << " to " << proposal << " (probability " << acceptance_probability << ")" << std::endl;
+					//std::cerr << "Accepted move from " << choices[index_to_change] << " to " << proposal << " (probability " << acceptance_probability << ")" << std::endl;
 					repeats[proposal] += 1;
 					repeats[choices[index_to_change]] -= 1;
 					choices[index_to_change] = proposal;
 				}
 				else{
-					std::cerr << "Rejected move from " << choices[index_to_change] << " to " << proposal << " (probability " << acceptance_probability << ")" << std::endl;
+					//std::cerr << "Rejected move from " << choices[index_to_change] << " to " << proposal << " (probability " << acceptance_probability << ")" << std::endl;
 				}
 			}
 			estimated_error *= new_estimated_error/num_samples;
