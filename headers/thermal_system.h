@@ -390,6 +390,10 @@ class ThermalSystem{
 			psi = itensor::MPS(new_psi);
 		}
 
+		double random_double(){
+			return distribution(generator);
+		}
+
 	private:
 		std::vector<double> abs_diagonal_elems(itensor::ITensor &T){
 			if(itensor::order(T) != 2){
@@ -437,9 +441,7 @@ class ThermalSystem{
 			return ns;
 		}
 
-		double random_double(){
-			return distribution(generator);
-		}
+		
 
 		std::vector<double> accumulate_weights(std::vector<double> &weights){
 			std::vector<double> cumulative_weights;

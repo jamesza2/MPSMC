@@ -45,6 +45,7 @@ int main(int argc, char*argv[]){
 	bool metropolis_sampling = input.testBool("metropolis_sampling", false);
 	int num_metropolis_setup_steps = input.testInt("num_metropolis_setup_steps");
 	int num_metropolis_sample_steps = input.testInt("num_metropolis_sample_steps");
+	int num_configurations = input.getInteger("num_configurations");
 	vector<int> site = input.getVectorInteger("site");
 
 	std::cerr << "Read input files" << endl;
@@ -80,59 +81,63 @@ int main(int argc, char*argv[]){
 	if(input.IsVariable("original_MPS_file")){
 		itensor::writeToFile(input.GetVariable("original_MPS_file"), original_psi);
 	}
-	
-	itensor::InitState random_config_init(sites, "Up");
-	if((method == "random")||(method == "Random")){
-		std::cerr << "Finding a random configuration..." << endl;
-		std::mt19937 generator(std::time(NULL));
-		std::string sequence = "";
-		for(int i = 1; i <= num_sites; i++){
-			int random_value = generator();
-			if(random_value % 2 == 1){
-				random_config_init.set(i, "Dn");
-				sequence += "D";
+	vector<double> original_overlaps;
+	vector<itensor::MPS> configs;
+	for(int configuration_index = 0; configuration_index < num_configurations; configuration_index ++){
+		itensor::InitState random_config_init(sites, "Up");
+		if((method == "random")||(method == "Random")){
+			//std::cerr << "Finding a random configuration..." << endl;
+			std::mt19937 generator(std::time(NULL));
+			std::string sequence = "";
+			for(int i = 1; i <= num_sites; i++){
+				int random_value = generator();
+				if(random_value % 2 == 1){
+					random_config_init.set(i, "Dn");
+					sequence += "D";
+				}
+				else{
+					sequence += "U";
+				}
 			}
-			else{
-				sequence += "U";
-			}
-		}
-		std::cerr << "Configuration: " << sequence << endl;
-	}
-	else{
-		std::cerr << "Finding a large overlap configuration..." << endl;
-		auto Sz1_op = itensor::toMPO(opm.SingleSiteSz(1));
-		double Sz1 = sys.expectation_value(Sz1_op);
-		bool Sz1_up = true; //Determines whether the first site in the selected configuration should be up or down
-		std::string sequence = "";
-		if(Sz1 < 0){
-			random_config_init.set(1,"Dn");
-			sequence += "D";
-			Sz1_up = false;
+			std::cerr << "Configuration: " << sequence << endl;
 		}
 		else{
-			sequence += "U";
-		}
-		
-		for(int j = 2; j <= num_sites; j++){
-			auto Sc1j_op = itensor::toMPO(opm.SpinCorrelation(1,j));
-			double Sc1j = sys.expectation_value(Sc1j_op);
-			if(Sc1j*Sz1 < 0){
+			//std::cerr << "Finding a large overlap configuration..." << endl;
+			auto Sz1_op = itensor::toMPO(opm.SingleSiteSz(1));
+			double Sz1 = sys.expectation_value(Sz1_op);
+			bool Sz1_up = true; //Determines whether the first site in the selected configuration should be up or down
+			std::string sequence = "";
+			double random_sequence = sys.random_double() - 0.5;
+			Sz1 += random_sequence;
+			if(Sz1 < 0){
+				random_config_init.set(1,"Dn");
 				sequence += "D";
-				random_config_init.set(j,"Dn");
+				Sz1_up = false;
 			}
 			else{
 				sequence += "U";
 			}
-		}
-		std::cerr << "Configuration: " << sequence << endl;
-	}
-	
-	itensor::MPS random_config(random_config_init);
-	
 
-	//double original_overlap = std::real(itensor::innerC(original_psi, random_config))/std::sqrt(std::abs(itensor::innerC(original_psi, original_psi)*itensor::innerC(random_config, random_config)));
-	double original_overlap = sys.overlap(random_config);
-	std::cerr << "Original overlap: " << original_overlap << endl;
+
+			
+			for(int j = 2; j <= num_sites; j++){
+				auto Sc1j_op = itensor::toMPO(opm.SpinCorrelation(1,j));
+				double Sc1j = sys.expectation_value(Sc1j_op) + (sys.random_double() - 0.5)*0.2;
+				if(Sc1j*Sz1 < 0){
+					sequence += "D";
+					random_config_init.set(j,"Dn");
+				}
+				else{
+					sequence += "U";
+				}
+			}
+			std::cerr << "Configuration: " << sequence << endl;
+		}
+		itensor::MPS random_config(random_config_init);
+		configs.push_back(random_config);
+		original_overlaps.push_back(sys.overlap(random_config));
+	}
+	std::cerr << "Original overlap with first config: " << original_overlaps[0] << endl;
 	std::cerr << "Creating truncated overlaps..." << endl;
 	time_t start_time = std::time(NULL);
 
@@ -154,7 +159,6 @@ int main(int argc, char*argv[]){
 			
 			vector<double> measured_overlaps_at_trunc;
 			
-			
 			for(int site_index = 0; site_index < site.size(); site_index++){
 				int site_number = site[site_index];
 				if(metropolis_sampling){
@@ -163,15 +167,16 @@ int main(int argc, char*argv[]){
 				else{
 					sys.truncate_single_site(site_number);
 				}
-				double ov = sys.overlap(random_config);
+			}
+			for(int config_index = 0; config_index < num_configurations; config_index ++){
+				double ov = sys.overlap(configs[config_index]);
 				double estimated_error = sys.estimated_error;
 				measured_overlaps_at_trunc.push_back(ov);
 				estimated_errors_at_trunc.push_back(estimated_error);
 			}
 			estimated_errors_at_bd.push_back(estimated_errors_at_trunc);
 			measured_overlaps_at_bd.push_back(measured_overlaps_at_trunc);
-
-			std::cerr << "Overlap with configuration: " << measured_overlaps_at_trunc[measured_overlaps_at_trunc.size()-1] << " | Final Estimated Error: " << sys.estimated_error << " | New Max BD: " << sys.get_max_bd() << endl;
+			std::cerr << "Overlap with first configuration: " << measured_overlaps_at_trunc[0] << " | First Estimated Error: " << estimated_errors_at_trunc[0] << endl;
 			
 		}
 		estimated_errors.push_back(estimated_errors_at_bd);
