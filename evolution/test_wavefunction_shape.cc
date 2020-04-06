@@ -189,7 +189,10 @@ int main(int argc, char*argv[]){
 	
 
 	ofstream out_file(out_file_name);
-	out_file << "#ORIGINAL_OVERLAP:\n" << original_overlap;
+	out_file << "#ORIGINAL_OVERLAPS:\n"
+	for(double original_overlap : original_overlaps){
+		out_file << original_overlap << " | ";
+	}
 	for(int truncated_bd_index = 0; truncated_bd_index < truncated_bds.size(); truncated_bd_index ++){
 		int truncated_bd = truncated_bds[truncated_bd_index];
 		vector<vector<double>> estimated_errors_at_bd = estimated_errors[truncated_bd_index];
