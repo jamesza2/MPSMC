@@ -148,7 +148,7 @@ class ThermalSystem{
 				vector<int> proposal;
 				vector<int> proposed_repeats(original_bd, 0);
 				for(int index_to_change = 0; index_to_change < truncated_bd; index_to_change ++){
-					int new_index = random_cumulative_weighted_single(cumulative_weights)
+					int new_index = random_cumulative_weighted_single(cumulative_weights);
 					proposal.push_back(new_index);
 					proposed_repeats[new_index] += 1;
 				}
