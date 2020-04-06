@@ -189,7 +189,7 @@ int main(int argc, char*argv[]){
 	
 
 	ofstream out_file(out_file_name);
-	out_file << "#ORIGINAL_OVERLAPS:\n"
+	out_file << "#ORIGINAL_OVERLAPS:\n";
 	for(double original_overlap : original_overlaps){
 		out_file << original_overlap << " | ";
 	}
