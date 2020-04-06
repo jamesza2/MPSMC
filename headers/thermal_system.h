@@ -145,19 +145,15 @@ class ThermalSystem{
 			double new_estimated_error = 0;
 			for(int step_number = 0; step_number < num_steps + num_samples; step_number ++){
 				double spork = random_double();
-				int index_to_change = static_cast<int>(spork*truncated_bd);
-				int proposal = random_cumulative_weighted_single(cumulative_weights);
-				if(proposal == choices[index_to_change]){
-					if(step_number >= num_steps){
-						new_estimated_error += repeats[0]*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(norm_squared(repeats)));
-					}
-					continue;
+				vector<int> proposal;
+				vector<int> proposed_repeats(original_bd, 0);
+				for(int index_to_change = 0; index_to_change < truncated_bd; index_to_change ++){
+					int new_index = random_cumulative_weighted_single(cumulative_weights)
+					proposal.push_back(new_index);
+					proposed_repeats[new_index] += 1;
 				}
 				int old_norm_squared = norm_squared(repeats);
-				int new_norm_squared = old_norm_squared;
-				new_norm_squared += -2*repeats[choices[index_to_change]]+1;
-				new_norm_squared += 2*repeats[proposal]+1;
-				//std::cerr << "Old norm squared: " << old_norm_squared << " New norm squared: " << new_norm_squared << std::endl;
+				int new_norm_squared = norm_squared(proposed_repeats);
 				double acceptance_probability = std::sqrt(static_cast<double>(new_norm_squared)/old_norm_squared);
 				bool accept = false;
 				if(acceptance_probability >= 1){
@@ -168,22 +164,12 @@ class ThermalSystem{
 						accept = true;
 					}
 				}
-				/*std::cerr << "Repeats vector: ";
-				for(int rep : repeats){
-					std::cerr << rep << " ";
-				}
-				std::cerr << std::endl;*/
+
 				if(step_number >= num_steps){
 					//sample estimated error
 					double estimation_at_old_position = repeats[0]*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(old_norm_squared));
-					int new_repeats_0 = repeats[0];
-					if(choices[index_to_change] == 0){
-						new_repeats_0 -= 1;
-					}
-					if(proposal == 0){
-						new_repeats_0 += 1;
-					}
-					double estimation_at_new_position = new_repeats_0*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(new_norm_squared));
+					
+					double estimation_at_new_position = proposed_repeats[0]*norm_of_original_wavefunction/(singular_values[0]*std::sqrt(new_norm_squared));
 					if(acceptance_probability >= 1){
 						new_estimated_error += estimation_at_new_position;
 					}
@@ -194,9 +180,12 @@ class ThermalSystem{
 				}
 				if(accept){
 					//std::cerr << "Accepted move from " << choices[index_to_change] << " to " << proposal << " (probability " << acceptance_probability << ")" << std::endl;
-					repeats[proposal] += 1;
-					repeats[choices[index_to_change]] -= 1;
-					choices[index_to_change] = proposal;
+					for(int repeat_index = 0; repeat_index < repeats.size(); repeat_index ++){
+						repeats[repeat_index] = proposed_repeats[repeat_index];
+					}
+					for(int choice_index = 0; choice_index < choices.size(); choice_index ++){
+						choices[choice_index] = proposal[choice_index];
+					}
 				}
 				else{
 					//std::cerr << "Rejected move from " << choices[index_to_change] << " to " << proposal << " (probability " << acceptance_probability << ")" << std::endl;
