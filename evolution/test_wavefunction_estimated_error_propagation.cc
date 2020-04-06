@@ -135,12 +135,7 @@ int main(int argc, char*argv[]){
 	double original_overlap = sys.overlap(random_config);
 	std::cerr << "Original overlap: " << original_overlap << endl;
 	std::cerr << "Creating truncated overlaps..." << endl;
-	vector<double> average_overlaps;
-	vector<double> average_error_corrected_overlaps;
 	time_t start_time = std::time(NULL);
-	vector<double> average_max_truncation;
-	vector<double> average_average_truncation;
-	vector<double> average_energies;
 
 	vector<vector<vector<double>>> estimated_errors; //First index is BD, second is truncation attempt number, third is site index
 	vector<vector<vector<double>>> measured_overlaps;
@@ -150,16 +145,16 @@ int main(int argc, char*argv[]){
 		sys.set_truncated_bd(num_selections);
 		std::cerr << "Testing truncation to bond dimension " << num_selections << std::endl;
 		vector<vector<double>> estimated_errors_at_bd;
-		estimated_errors.push_back(estimated_errors_at_bd);
+		
 		vector<vector<double>> measured_overlaps_at_bd;
-		measured_overlaps.push_back(measured_overlaps_at_bd);
+		
 		for(int trunc_index = 0; trunc_index < num_truncations; trunc_index++){
 			sys.estimated_error = 1.0;
 			sys.set_MPS(original_psi);
 			vector<double> estimated_errors_at_trunc;
-			estimated_errors_at_bd.push_back(estimated_errors_at_trunc);
+			
 			vector<double> measured_overlaps_at_trunc;
-			measured_overlaps_at_bd.push_back(measured_overlaps_at_trunc);
+			
 			
 			for(int site_index = 0; site_index < site.size(); site_index++){
 				int site_number = site[site_index];
@@ -174,10 +169,14 @@ int main(int argc, char*argv[]){
 				measured_overlaps_at_trunc.push_back(ov);
 				estimated_errors_at_trunc.push_back(estimated_error);
 			}
+			estimated_errors_at_bd.push_back(estimated_errors_at_trunc);
+			measured_overlaps_at_bd.push_back(measured_overlaps_at_trunc);
 
 			std::cerr << "Overlap with configuration: " << measured_overlaps_at_trunc[measured_overlaps_at_trunc.size()-1] << " | Final Estimated Error: " << sys.estimated_error << " | New Max BD: " << sys.get_max_bd() << endl;
 			
 		}
+		estimated_errors.push_back(estimated_errors_at_bd);
+		measured_overlaps.push_back(measured_overlaps_at_bd);
 
 		//start_time = time(NULL);
 	}
