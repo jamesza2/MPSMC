@@ -188,7 +188,7 @@ int main(int argc, char*argv[]){
 	ofstream out_file(out_file_name);
 	out_file << "#ORIGINAL_OVERLAP:\n" << original_overlap;
 	for(int truncated_bd_index = 0; truncated_bd_index < truncated_bds.size(); truncated_bd_index ++){
-		int truncated_bd = truncated_bds.size();
+		int truncated_bd = truncated_bds[truncated_bd_index];
 		vector<vector<double>> estimated_errors_at_bd = estimated_errors[truncated_bd_index];
 		vector<vector<double>> measured_overlaps_at_bd = measured_overlaps[truncated_bd_index];
 		out_file << "\n#ESTIMATED_ERROR | BOND_DIMENSION, " << truncated_bd;
