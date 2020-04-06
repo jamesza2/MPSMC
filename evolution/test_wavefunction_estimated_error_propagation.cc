@@ -174,7 +174,7 @@ int main(int argc, char*argv[]){
 				estimated_errors_at_trunc.push_back(estimated_error);
 			}
 
-			std::cerr << "Overlap with configuration: " << measured_overlaps_at_trunc[measured_overlaps_at_trunc.size()-1]; << " | Final Estimated Error: " << sys.estimated_error << " | New Max BD: " << sys.get_max_bd() << endl;
+			std::cerr << "Overlap with configuration: " << measured_overlaps_at_trunc[measured_overlaps_at_trunc.size()-1] << " | Final Estimated Error: " << sys.estimated_error << " | New Max BD: " << sys.get_max_bd() << endl;
 			
 		}
 
