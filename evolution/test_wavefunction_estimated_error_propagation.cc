@@ -81,11 +81,6 @@ int main(int argc, char*argv[]){
 	if(input.IsVariable("original_MPS_file")){
 		itensor::writeToFile(input.GetVariable("original_MPS_file"), original_psi);
 	}
-
-	double original_energy = 0;
-	if(test_energy){
-		original_energy = std::abs(itensor::innerC(original_psi, H, original_psi)/itensor::innerC(original_psi, original_psi));
-	}
 	
 	itensor::InitState random_config_init(sites, "Up");
 	if((method == "random")||(method == "Random")){
@@ -148,7 +143,7 @@ int main(int argc, char*argv[]){
 	vector<double> average_energies;
 
 	vector<vector<vector<double>>> estimated_errors; //First index is BD, second is truncation attempt number, third is site index
-	vecotr<vector<vector<double>>> measured_overlaps;
+	vector<vector<vector<double>>> measured_overlaps;
 
 	for(int bd_index = 0; bd_index < truncated_bds.size(); bd_index++){
 		int num_selections = truncated_bds[bd_index];
@@ -175,11 +170,11 @@ int main(int argc, char*argv[]){
 				}
 				double ov = sys.overlap(random_config);
 				double estimated_error = sys.estimated_error;
-				mesaured_overlaps_at_trunc.push_back(ov);
+				measured_overlaps_at_trunc.push_back(ov);
 				estimated_errors_at_trunc.push_back(estimated_error);
 			}
 
-			std::cerr << "Overlap with configuration: " << ov << " | Final Estimated Error: " << sys.estimated_error << " | New Max BD: " << sys.get_max_bd() << endl;
+			std::cerr << "Overlap with configuration: " << measured_overlaps_at_trunc[measured_overlaps_at_trunc.size()-1]; << " | Final Estimated Error: " << sys.estimated_error << " | New Max BD: " << sys.get_max_bd() << endl;
 			
 		}
 
