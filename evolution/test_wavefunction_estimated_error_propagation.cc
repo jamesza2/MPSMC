@@ -148,6 +148,7 @@ int main(int argc, char*argv[]){
 	for(int bd_index = 0; bd_index < truncated_bds.size(); bd_index++){
 		int num_selections = truncated_bds[bd_index];
 		sys.set_truncated_bd(num_selections);
+		std::cerr << "Testing truncation to bond dimension " << num_selections << std::endl;
 		vector<vector<double>> estimated_errors_at_bd;
 		estimated_errors.push_back(estimated_errors_at_bd);
 		vector<vector<double>> measured_overlaps_at_bd;
