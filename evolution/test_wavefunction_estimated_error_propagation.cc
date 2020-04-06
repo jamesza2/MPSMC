@@ -45,7 +45,16 @@ int main(int argc, char*argv[]){
 	bool metropolis_sampling = input.testBool("metropolis_sampling", false);
 	int num_metropolis_setup_steps = input.testInt("num_metropolis_setup_steps");
 	int num_metropolis_sample_steps = input.testInt("num_metropolis_sample_steps");
-	vector<int> site = input.getVectorInteger("site");
+	bool specific_sites = input.testBool("specific_sites", false);
+	vector<int> site;
+	if(specific_sites){
+		site = input.getVectorInteger("site");
+	}
+	else{
+		for(int i = 1; i < num_sites; i++){
+			site.push_back(i);
+		}
+	}
 
 	std::cerr << "Read input files" << endl;
 
