@@ -129,7 +129,7 @@ int main(int argc, char*argv[]){
 			
 			for(int j = 2; j <= num_sites; j++){
 				auto Sc1j_op = itensor::toMPO(opm.SpinCorrelation(1,j));
-				double Sc1j = sys.expectation_value(Sc1j_op) + (sys.random_double() - 0.5)*0.2;
+				double Sc1j = sys.expectation_value(Sc1j_op) + std::pow(sys.random_double()*1.4 - 0.7,5);
 				if(Sc1j*Sz1 < 0){
 					sequence += "D";
 					random_config_init.set(j,"Dn");
@@ -184,7 +184,7 @@ int main(int argc, char*argv[]){
 			}
 			estimated_errors_at_bd.push_back(estimated_errors_at_trunc);
 			measured_overlaps_at_bd.push_back(measured_overlaps_at_trunc);
-			std::cerr << "Overlap with first configuration: " << measured_overlaps_at_trunc[0] << " | First Estimated Error: " << estimated_errors_at_trunc[0] << endl;
+			std::cerr << "Overlap with first configuration: " << measured_overlaps_at_trunc[0] << " | First Estimated Error: " << estimated_errors_at_trunc[0] << " | " << difftime(start_time, time(NULL)) << "s" << endl;
 			
 		}
 		estimated_errors.push_back(estimated_errors_at_bd);

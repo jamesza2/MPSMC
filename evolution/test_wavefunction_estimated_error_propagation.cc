@@ -157,6 +157,7 @@ int main(int argc, char*argv[]){
 		vector<vector<double>> measured_overlaps_at_bd;
 		
 		for(int trunc_index = 0; trunc_index < num_truncations; trunc_index++){
+			time_t start_time = time(NULL);
 			sys.estimated_error = 1.0;
 			sys.set_MPS(original_psi);
 			vector<double> estimated_errors_at_trunc;
@@ -180,7 +181,7 @@ int main(int argc, char*argv[]){
 			estimated_errors_at_bd.push_back(estimated_errors_at_trunc);
 			measured_overlaps_at_bd.push_back(measured_overlaps_at_trunc);
 
-			std::cerr << "Overlap with configuration: " << measured_overlaps_at_trunc[measured_overlaps_at_trunc.size()-1] << " | Final Estimated Error: " << sys.estimated_error << " | New Max BD: " << sys.get_max_bd() << endl;
+			std::cerr << "Overlap with configuration: " << measured_overlaps_at_trunc[measured_overlaps_at_trunc.size()-1] << " | Final Estimated Error: " << sys.estimated_error << " | New Max BD: " << sys.get_max_bd() << " | " << difftime(start_time, time(NULL)) << "s" << endl;
 			
 		}
 		estimated_errors.push_back(estimated_errors_at_bd);
