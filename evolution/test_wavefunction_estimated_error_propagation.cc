@@ -194,6 +194,9 @@ int main(int argc, char*argv[]){
 
 	ofstream out_file(out_file_name);
 	out_file << "#ORIGINAL_OVERLAP:\n" << original_overlap;
+	out_file << "\n#METROPOLIS_SAMPLING_STEPS:\n" << num_metropolis_sample_steps;
+	out_file << "\n#NUM_SITES:\n" << num_sites;
+	out_file << "\n#ORIGINAL_BD:\n" << itensor::maxLinkDim(original_psi);
 	for(int truncated_bd_index = 0; truncated_bd_index < truncated_bds.size(); truncated_bd_index ++){
 		int truncated_bd = truncated_bds[truncated_bd_index];
 		vector<vector<double>> estimated_errors_at_bd = estimated_errors[truncated_bd_index];
