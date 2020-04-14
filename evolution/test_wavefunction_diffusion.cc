@@ -62,10 +62,12 @@ int main(int argc, char*argv[]){
 	}
 	for(int i = 0; i < num_setup_iterations; i++){
 		tw.iterate_single();
+		tw.recalculate_trial_energy(tw.expectation_value(H));
 	}
 	//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
 	while(tw.get_max_bd() <= max_bd){
 		tw.iterate_single_no_truncation();
+		tw.recalculate_trial_energy(tw.expectation_value(H));
 	}
 
 	//tw.shave(1);

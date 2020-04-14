@@ -119,14 +119,14 @@ class ThermalWalkers{
 		}
 
 		void process(){
-			std::cerr << "Walker weights: ";
+			std::cerr << "  Walker weights: ";
 			for(double weight : weights){
 				std::cerr << weight << " ";
 			}
 			std::cerr << std::endl;
 			combine_walkers();
 			split_walkers();
-			std::cerr << "Recombined walker weights: ";
+			std::cerr << "    Recombined walker weights: ";
 			for(double weight : weights){
 				std::cerr << weight << " ";
 			}
@@ -138,7 +138,7 @@ class ThermalWalkers{
 					reweight(MPS_index);
 				}
 			}
-			std::cerr << "New walker weights: ";
+			std::cerr << "      New walker weights: ";
 			for(double weight : weights){
 				std::cerr << weight << " ";
 			}
