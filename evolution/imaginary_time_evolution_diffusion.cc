@@ -62,13 +62,16 @@ int main(int argc, char *argv[]){
 	vector<vector<double>> walker_weights;
 	vector<int> num_current_walkers;
 	vector<vector<int>> bds;
+	vector<double> trial_energies;
 	for(int iteration = 0; iteration < num_iterations; iteration++){
 		time_t start_time = time(NULL);
+		trial_energies.push_back(tw.trial_energy);
 		tw.iterate_single();
 		double energy = tw.expectation_value(H);
-		tw.recalculate_trial_energy(energy);
+
 		vector<double> energies = tw.expectation_values(H);
 		vector<double> weights = tw.get_weights();
+		tw.recalculate_trial_energy(energies[0]/(weights[0]*weights[0]));
 		walker_energies.push_back(energies);
 		walker_weights.push_back(weights);
 		average_energies.push_back(energy);
@@ -90,6 +93,10 @@ int main(int argc, char *argv[]){
 	out_file << "\n#NUM_WALKERS:\n";
 	for(double nw : num_current_walkers){
 		out_file << nw << " ";
+	}
+	out_file << "\n#TRIAL_ENERGIES:\n";
+	for(double energy : trial_energies){
+		out_file << energy << " ";
 	}
 	out_file << "\n#WALKER_ENERGIES:";
 	for(vector<double> walker_energy_vector : walker_energies){
