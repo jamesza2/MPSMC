@@ -253,13 +253,13 @@ class ThermalWalkers{
 		}
 		void truncate_single_MPS(int MPS_index){
 			int num_sites = itensor::length(walkers[MPS_index]);
-			for(int site = 0; site < num_sites; site++){
+			for(int site = 1; site < num_sites; site++){
 				truncate_single_site_single_MPS(site, MPS_index);
 			}
 		}
 
 		void truncate(){
-			int num_sites = itensor::length(walkers[0]);
+			//int num_sites = itensor::length(walkers[0]);
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
 					truncate_single_MPS(MPS_index);
