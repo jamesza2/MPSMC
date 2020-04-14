@@ -42,7 +42,7 @@ int main(int argc, char*argv[]){
 	std::string method = input.GetVariable("configuration_selection");
 	std::string out_file_name = input.GetVariable("out_file");
 	int num_desired_walkers = input.getInteger("num_walkers");
-	int num_max_walkers = input.testInteger("num_max_walkers", num_walkers);
+	int num_max_walkers = input.testInteger("num_max_walkers", num_desired_walkers);
 
 	std::cerr << "Read input files" << endl;
 
