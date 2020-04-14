@@ -62,7 +62,7 @@ class ThermalWalkers{
 			return w;
 		}
 
-		int get_bds(){
+		vector<int> get_bds(){
 			vector<int> bds;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				bds.push_back(itensor::length(walkers[MPS_index]));
@@ -121,10 +121,10 @@ class ThermalWalkers{
 		}
 
 		void reweight(int MPS_index, double new_weight = -1){
-			auto psi = walkers.at(MPS_index);
-			double norm = std::sqrt(std::abs(itensor::innerC(*psi, *psi)));
+			itensor::MPS & psi = walkers.at(MPS_index);
+			double norm = std::sqrt(std::abs(itensor::innerC(psi, psi)));
 			if(new_weight != -1){
-				*psi /= (norm/new_weight);
+				psi /= (norm/new_weight);
 				weights[MPS_index] = new_weight;
 			}
 			else{
@@ -266,7 +266,7 @@ class ThermalWalkers{
 				int MPS_index,
 				double singular_value_weight)
 		{
-			auto psi = walkers.at(MPS_index);
+			itensor::MPS & psi = walkers.at(MPS_index);
 			int final_truncated_bd = truncated_repeats.size();
 			//Turn those random elements into screening matrices to apply to U, S and V
 			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(site));
@@ -288,12 +288,12 @@ class ThermalWalkers{
 				S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, singular_value_weight*truncated_repeats[repeat_index-1]);
 			}
 			//Collect new U into current matrix, S*V into the forward matrix
-			psi->ref(site) = U;
-			psi->ref(site+1) = S*V;
+			psi.ref(site) = U;
+			psi.ref(site+1) = S*V;
 			//Readjust link indices
-			auto link_indices = itensor::linkInds(*psi);
+			auto link_indices = itensor::linkInds(psi);
 			link_indices(site) = T_truncated_index;
-			psi->replaceLinkInds(link_indices);
+			psi.replaceLinkInds(link_indices);
 		}
 
 		itensor::MPS copy_state(int MPS_index){
@@ -543,41 +543,41 @@ class ThermalWalkers{
 		//Automatically deprimes site indices
 		void apply_MPO_no_truncation(){
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
-				auto psi = walkers.at(MPS_index);
-				int num_sites = itensor::length(*psi);
+				itensor::MPS & psi = walkers.at(MPS_index);
+				int num_sites = itensor::length(psi);
 
 				std::vector<itensor::Index> new_link_indices;
 				new_link_indices.reserve(num_sites);
 
 				auto MPO_first_link = itensor::rightLinkIndex(*itev, 1);
-				auto MPS_first_link = itensor::rightLinkIndex(*psi, 1);
+				auto MPS_first_link = itensor::rightLinkIndex(psi, 1);
 				auto [first_combiner, first_link_index] = itensor::combiner(itensor::IndexSet(MPO_first_link, MPS_first_link),{"Tags=","Link,l=1"});
 
 				std::vector<itensor::ITensor> new_MPS;
 				
-				new_MPS.push_back((*psi)(1)*(*itev)(1)*first_combiner);
+				new_MPS.push_back(psi(1)*(*itev)(1)*first_combiner);
 				new_link_indices.push_back(first_link_index);
 
 				for(int i = 2; i <= num_sites; i++){
 					auto MPO_left_link = itensor::leftLinkIndex(*itev, i);
-					auto MPS_left_link = itensor::leftLinkIndex(*psi, i);
+					auto MPS_left_link = itensor::leftLinkIndex(psi, i);
 					auto [left_combiner, left_combined_index] = itensor::combiner(MPO_left_link, MPS_left_link);
 					if(i == num_sites){
-						new_MPS.push_back((*psi)(num_sites)*(*itev)(num_sites)*left_combiner*itensor::delta(left_combined_index, new_link_indices[num_sites-2]));
+						new_MPS.push_back(psi(num_sites)*(*itev)(num_sites)*left_combiner*itensor::delta(left_combined_index, new_link_indices[num_sites-2]));
 						break;
 					}
 					auto MPO_right_link = itensor::rightLinkIndex(*itev, i);
-					auto MPS_right_link = itensor::rightLinkIndex(*psi, i);
+					auto MPS_right_link = itensor::rightLinkIndex(psi, i);
 					auto [right_combiner, right_combined_index] = itensor::combiner(itensor::IndexSet(MPO_right_link, MPS_right_link), {"Tags=","Link,l="+std::to_string(i)});
-					new_MPS.push_back((*psi)(i)*(*itev)(i)*left_combiner*right_combiner*itensor::delta(left_combined_index, new_link_indices[i-2]));
+					new_MPS.push_back(psi(i)*(*itev)(i)*left_combiner*right_combiner*itensor::delta(left_combined_index, new_link_indices[i-2]));
 					new_link_indices.push_back(right_combined_index);
 				}
 				for(int i = 1; i <= num_sites; i++){
-					psi->ref(i) = new_MPS[i-1];
+					psi.ref(i) = new_MPS[i-1];
 				}
-				psi->replaceLinkInds(itensor::IndexSet(new_link_indices));
-				psi->replaceSiteInds(itensor::noPrime(itensor::siteInds(*psi)));
-				*psi *= std::exp(trial_energy*tau);
+				psi.replaceLinkInds(itensor::IndexSet(new_link_indices));
+				psi.replaceSiteInds(itensor::noPrime(itensor::siteInds(*psi)));
+				psi *= std::exp(trial_energy*tau);
 			}
 			
 		}
