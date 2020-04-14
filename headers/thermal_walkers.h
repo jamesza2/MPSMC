@@ -76,7 +76,7 @@ class ThermalWalkers{
 			//double norm2 = std::sqrt(std::abs(itensor::innerC(psi_other, psi_other)));
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				//double norm1 = std::sqrt(std::abs(itensor::innerC(*MPS_iter, *MPS_iter)));
-				ovs.push_back(std::real(itensor::innerC(walkers[MPS_index], psi_other)))/weights[MPS_index];
+				ovs.push_back(std::real(itensor::innerC(walkers[MPS_index], psi_other))/weights[MPS_index]);
 			}
 			return ovs;
 		}
