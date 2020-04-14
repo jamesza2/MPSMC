@@ -84,7 +84,8 @@ class ThermalWalkers{
 			double ev = 0;
 			int num_sites = itensor::length(walkers[0]);
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
-				ev += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]))*weights[MPS_index]/num_sites;
+				//ev += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]))*weights[MPS_index]/num_sites;
+				ev += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]));
 			}
 			return ev;
 		}
@@ -108,7 +109,7 @@ class ThermalWalkers{
 			split_walkers();
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
-					std::cerr << "Truncating MPSs..." << std::endl;
+					//std::cerr << "Truncating MPSs..." << std::endl;
 					truncate_single_MPS(MPS_index);
 					reweight(MPS_index);
 				}
@@ -187,9 +188,9 @@ class ThermalWalkers{
 			}
 		}
 
-		void recalculate_trial_energy(){
+		void recalculate_trial_energy(double expected_energy = 0){
 			double total_weight = sum(weights);
-			trial_energy = std::log(static_cast<double>(num_walkers)/total_weight)/tau;
+			trial_energy = std::log(static_cast<double>(num_walkers)/total_weight)/tau + expected_energy;
 		}
 
 		void iterate_single(){
@@ -230,9 +231,9 @@ class ThermalWalkers{
 		}
 
 		void truncate_single_site_single_MPS(int site, int MPS_index){
-			std::cerr << "Performing SVD on site..." << std::endl;
+			//std::cerr << "Performing SVD on site..." << std::endl;
 			auto[U,S,V] = svd_on_site(MPS_index, site);
-			Print(S);
+			//Print(S);
 			auto V_original_index = itensor::commonIndex(S,V);
 			auto U_original_index = itensor::commonIndex(U,S);
 			std::vector<double> singular_values = abs_diagonal_elems(S);
@@ -248,7 +249,7 @@ class ThermalWalkers{
 				}
 			}
 			double singular_value_weight = sum(singular_values)/truncated_bd;
-			std::cerr << "Truncating after selecting singular values..." << std::endl;
+			//std::cerr << "Truncating after selecting singular values..." << std::endl;
 			truncate_based_on_selection(truncated_repeats, original_indices, U, S, V, original_bd, site, MPS_index, singular_value_weight);
 		}
 		void truncate_single_MPS(int MPS_index){
@@ -282,7 +283,7 @@ class ThermalWalkers{
 			itensor::MPS & psi = walkers.at(MPS_index);
 			int final_truncated_bd = truncated_repeats.size();
 			//Turn those random elements into screening matrices to apply to U, S and V
-			std::cerr << "Creating truncation tensor...";
+			//std::cerr << "Creating truncation tensor...";
 			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(site));
 			itensor::Index T_original_index(original_bd,"original");
 			itensor::Index T_truncated_index_primed = itensor::prime(T_truncated_index, 1);
@@ -291,11 +292,11 @@ class ThermalWalkers{
 			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
 				T.set(T_truncated_index = repeat_index, T_original_index = original_indices[repeat_index-1], 1.0);
 			}
-			Print(T);
+			//Print(T);
 			
 			//Apply them to U, S and V
 			//Should change U to U*T, S to T*S*T and V to T*S
-			std::cerr << "Truncating V, U and S..." << std::endl;
+			//std::cerr << "Truncating V, U and S..." << std::endl;
 			V = V*(T*itensor::delta(T_original_index, V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
 			U = U*(T*itensor::delta(T_original_index, U_original_index));
 			S = S*(T*itensor::delta(T_original_index, U_original_index))*(T*itensor::delta(T_original_index,V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));

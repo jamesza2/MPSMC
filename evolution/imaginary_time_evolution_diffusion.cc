@@ -66,6 +66,7 @@ int main(int argc, char *argv[]){
 		time_t start_time = time(NULL);
 		tw.iterate_single();
 		double energy = tw.expectation_value(H);
+		tw.recalculate_trial_energy(energy);
 		vector<double> energies = tw.expectation_values(H);
 		vector<double> weights = tw.get_weights();
 		walker_energies.push_back(energies);
