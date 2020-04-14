@@ -114,6 +114,11 @@ class ThermalWalkers{
 			std::cerr << std::endl;
 			combine_walkers();
 			split_walkers();
+			std::cerr << "Recombined walker weights: ";
+			for(double weight : weights){
+				std::cerr << weight << " ";
+			}
+			std::cerr << std::endl;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
 					//std::cerr << "Truncating MPSs..." << std::endl;
