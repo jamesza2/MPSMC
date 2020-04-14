@@ -65,7 +65,7 @@ class ThermalWalkers{
 		vector<int> get_bds(){
 			vector<int> bds;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
-				bds.push_back(itensor::length(walkers[MPS_index]));
+				bds.push_back(itensor::maxLinkDim(walkers[MPS_index]));
 			}
 			return bds;
 		}
@@ -90,6 +90,13 @@ class ThermalWalkers{
 			return ev;
 		}
 
+		double average_walker_energy(itensor::MPO &A){
+			double en = 0;
+			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
+				en += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]))/(weights[MPS_index]*weights[MPS_index]);
+			}
+			return en/walkers.size();
+		}
 
 		//Iterate floor(beta/tau) times, automatically truncating when it gets beyond certain bond dimensions
 		void iterate(double beta){
