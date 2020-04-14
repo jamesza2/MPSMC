@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
 	vector<double> average_energies;
 	vector<vector<double>> walker_energies;
 	vector<vector<double>> walker_weights;
-	vector<double> num_walkers;
+	vector<int> num_current_walkers;
 	vector<vector<int>> bds;
 	for(int iteration = 0; iteration < num_iterations; iteration++){
 		time_t start_time = time(NULL);
@@ -87,7 +87,7 @@ int main(int argc, char *argv[]){
 		out_file << energy << " ";
 	}
 	out_file << "\n#NUM_WALKERS:\n";
-	for(double nw : num_walkers){
+	for(double nw : num_current_walkers){
 		out_file << nw << " ";
 	}
 	out_file << "\n#WALKER_ENERGIES:";

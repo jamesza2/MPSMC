@@ -543,7 +543,7 @@ class ThermalWalkers{
 		//Automatically deprimes site indices
 		void apply_MPO_no_truncation(){
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
-				auto psi = walkers[MPS_index];
+				auto psi = walkers.at(MPS_index);
 				int num_sites = itensor::length(*psi);
 
 				std::vector<itensor::Index> new_link_indices;
