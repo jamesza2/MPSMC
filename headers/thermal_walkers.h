@@ -70,16 +70,27 @@ class ThermalWalkers{
 			return bds;
 		}
 
+		//Unweighted overlaps
 		vector<double> overlaps(itensor::MPS &psi_other){
 			vector<double> ovs;
 			//double norm2 = std::sqrt(std::abs(itensor::innerC(psi_other, psi_other)));
 			for(auto MPS_iter = walkers.begin(); MPS_iter != walkers.end(); ++MPS_iter){
 				//double norm1 = std::sqrt(std::abs(itensor::innerC(*MPS_iter, *MPS_iter)));
-				ovs.push_back(std::real(itensor::innerC(*MPS_iter, psi_other)));
+				ovs.push_back(std::real(itensor::innerC(*MPS_iter, psi_other)))/weights[MPS_iter];
 			}
 			return ovs;
 		}
 
+		//Overlap <psi_other|psi> weighted by weights (no need to multiply weights as we already have |psi>)
+		double overlap(itensor::MPS &psi_other){
+			double ov = 0;
+			for(auto MPS_iter = walkers.begin(); MPS_iter != walkers.end(); ++MPS_iter){
+				ov += std::real(itensor::innerC(*MPS_iter, psi_other));
+			}
+			return ov;
+		}
+
+		//Energies of each MPS weighted by weights
 		double expectation_value(itensor::MPO &A){
 			double ev = 0;
 			int num_sites = itensor::length(walkers[0]);
@@ -90,6 +101,7 @@ class ThermalWalkers{
 			return ev/(sum(weights)*num_sites);
 		}
 
+		//Unweighted average energy of each MPS
 		double average_walker_energy(itensor::MPO &A){
 			double en = 0;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
@@ -363,6 +375,13 @@ class ThermalWalkers{
 				all_MPS.push_back(itensor::MPS(walkers[MPS_index]));
 			}
 			return all_MPS;
+		}
+
+		void shave(int final_num_walkers){
+			while(walkers.size() > final_num_walkers){
+				walkers.pop_back();
+				weights.pop_back();
+			}
 		}
 
 		double random_double(){
