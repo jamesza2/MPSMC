@@ -30,7 +30,7 @@ class ThermalWalkers{
 			int truncated_bond_dimension_input,
 			int num_walkers_input)
 		{
-			psi = itensor::randomMPS(sites);
+			auto psi = itensor::randomMPS(sites);
 			walkers.clear();
 			walkers.push_back(psi);
 			weights.clear();
@@ -77,7 +77,7 @@ class ThermalWalkers{
 				//double norm1 = std::sqrt(std::abs(itensor::innerC(*MPS_iter, *MPS_iter)));
 				ovs.push_back(std::real(itensor::innerC(*MPS_iter, psi_other)));
 			}
-			return evs;
+			return ovs;
 		}
 
 		double expectation_value(itensor::MPO &A){
@@ -107,8 +107,8 @@ class ThermalWalkers{
 			combine_walkers();
 			split_walkers();
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
-				if(itesnor::maxLinkDim(walkers[MPS_index]) > max_bd){
-					truncate(MPS_index);
+				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
+					truncate_single_MPS(MPS_index);
 					reweight(MPS_index);
 				}
 			}
@@ -135,7 +135,7 @@ class ThermalWalkers{
 
 		void combine_walkers(){
 			vector<int> to_combine;
-			for(int MPS_index = 0; MPS_index < original_size; MPS_index ++){
+			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(weights[MPS_index] < 0.5){
 					to_combine.push_back(MPS_index);
 				}
@@ -171,7 +171,7 @@ class ThermalWalkers{
 		}
 
 		void split_walkers(){
-			vector<int> to_split();
+			vector<int> to_split;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(weights[MPS_index] > 2){
 					to_split.push_back(MPS_index);
@@ -180,8 +180,8 @@ class ThermalWalkers{
 			for(int MPS_index : to_split()){
 				double old_weight = weights[MPS_index];
 				reweight(MPS_index, old_weight/2);
-				walkers.insert(itensor::MPS(walkers[MPS_index]));
-				weights.insert(old_weight/2);
+				walkers.push_back(itensor::MPS(walkers[MPS_index]));
+				weights.push_back(old_weight/2);
 				std::cerr << "Split walker #" << MPS_index << " with original weight " << old_weight << std::endl;
 			}
 		}
@@ -247,12 +247,17 @@ class ThermalWalkers{
 			double singular_value_weight = sum(singular_values)/truncated_bd;
 			truncate_based_on_selection(truncated_repeats, original_indices, U, S, V, site, MPS_index, singular_value_weight);
 		}
+		void truncate_single_MPS(int MPS_index){
+			for(int site = 0; site < num_sites; site++){
+				truncate_single_site_single_MPS(site, MPS_index);
+			}
+		}
 
 		void truncate(){
 			int num_sites = itensor::length(walkers[0]);
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
-				for(int site = 0; site < num_sites; site++){
-					truncate_single_site_single_MPS(site, MPS_index);
+				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
+					truncate_single_MPS(MPS_index);
 				}
 			}
 		}
@@ -266,6 +271,9 @@ class ThermalWalkers{
 				int MPS_index,
 				double singular_value_weight)
 		{
+			auto V_original_index = itensor::commonIndex(S,V);
+			auto U_original_index = itensor::commonIndex(U,S);
+			int original_bd = itensor::dim(U_original_index);
 			itensor::MPS & psi = walkers.at(MPS_index);
 			int final_truncated_bd = truncated_repeats.size();
 			//Turn those random elements into screening matrices to apply to U, S and V
@@ -576,7 +584,7 @@ class ThermalWalkers{
 					psi.ref(i) = new_MPS[i-1];
 				}
 				psi.replaceLinkInds(itensor::IndexSet(new_link_indices));
-				psi.replaceSiteInds(itensor::noPrime(itensor::siteInds(*psi)));
+				psi.replaceSiteInds(itensor::noPrime(itensor::siteInds(psi)));
 				psi *= std::exp(trial_energy*tau);
 			}
 			
