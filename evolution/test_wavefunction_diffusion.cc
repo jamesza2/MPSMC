@@ -64,7 +64,7 @@ int main(int argc, char*argv[]){
 		tw.iterate_single();
 	}
 	//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
-	while(itensor::maxLinkDim(sys.psi) <= max_bd){
+	while(tw.get_max_bd() <= max_bd){
 		tw.iterate_single_no_truncation();
 	}
 
@@ -135,7 +135,7 @@ int main(int argc, char*argv[]){
 
 	time_t start_time = std::time(NULL);
 	for(int i = 0; i < num_truncations; i++){
-		tw.set_all_MPS(original_psi);
+		tw.set_all_MPS(original_psis);
 		tw.process();
 		double ov = tw.overlap(random_config);
 		overlaps.push_back(ov);
@@ -152,7 +152,7 @@ int main(int argc, char*argv[]){
 	std::cerr << "Average error corrected overlap: " << sum(overlaps)/num_truncations << endl;
 
 	ofstream out_file(out_file_name);
-	out_file << "#NUM_EXPECTED_WALKERS:\n" << num_walkers;
+	out_file << "#NUM_EXPECTED_WALKERS:\n" << num_desired_walkers;
 	out_file << "\n#NUM_TRUNCATIONS:" << num_truncations;
 	out_file << "\n#ORIGINAL_OVERLAP:\n" << original_overlap;
 	out_file << "\n#TRUNCATED_OVERLAPS:";

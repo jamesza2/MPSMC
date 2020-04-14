@@ -74,9 +74,9 @@ class ThermalWalkers{
 		vector<double> overlaps(itensor::MPS &psi_other){
 			vector<double> ovs;
 			//double norm2 = std::sqrt(std::abs(itensor::innerC(psi_other, psi_other)));
-			for(auto MPS_iter = walkers.begin(); MPS_iter != walkers.end(); ++MPS_iter){
+			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				//double norm1 = std::sqrt(std::abs(itensor::innerC(*MPS_iter, *MPS_iter)));
-				ovs.push_back(std::real(itensor::innerC(*MPS_iter, psi_other)))/weights[MPS_iter];
+				ovs.push_back(std::real(itensor::innerC(walkers[MPS_index], psi_other)))/weights[MPS_index];
 			}
 			return ovs;
 		}
@@ -225,11 +225,12 @@ class ThermalWalkers{
 			apply_MPO_no_truncation();
 		}
 
-		vector<int> get_max_bd(){
-			vector<int> max_bds;
+		int get_max_bd(){
+			int max_bd = 0;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
-				max_bds.push_back(itensor::maxLinkDim(walkers[MPS_index]));
+				max_bd = std::max(max_bd,itensor::maxLinkDim(walkers[MPS_index]));
 			}
+			return max_bd;
 		}
 
 		void set_max_bd(int new_max_bd){
