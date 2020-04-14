@@ -62,7 +62,7 @@ class InputClass
     }
   }
 
-  int testInt(string myString, int def = 0){
+  int testInteger(string myString, int def = 0){
     if(IsVariable(myString)){
       return toInteger(GetVariable(myString));
     }

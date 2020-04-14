@@ -33,6 +33,7 @@ int main(int argc, char *argv[]){
 	double h = input.getDouble("external_field");
 	int num_iterations = input.getInteger("num_iterations");
 	int num_walkers = input.getInteger("num_walkers");
+	int num_max_walkers = input.testInteger("num_max_walkers", num_walkers);
 	//std::string mps_file_name = input.GetVariable("mps_file_name");
 	std::string out_file_name = input.GetVariable("out_file");
 	
@@ -52,7 +53,7 @@ int main(int argc, char *argv[]){
 	itensor::MPO avg_Sz = itensor::toMPO(avg_Sz_ampo);
 
 
-	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers);
+	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
 
 
 	std::ofstream out_file(out_file_name);

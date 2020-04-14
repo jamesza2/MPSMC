@@ -20,6 +20,7 @@ class ThermalWalkers{
 		double estimated_error;
 		double trial_energy;
 		int num_walkers;
+		int num_max_walkers;
 		std::mt19937 generator;
 		std::uniform_real_distribution<double> distribution;
 
@@ -28,7 +29,8 @@ class ThermalWalkers{
 			double tau_input, 
 			int max_bond_dimension_input, 
 			int truncated_bond_dimension_input,
-			int num_walkers_input)
+			int num_walkers_input,
+			int num_max_walkers_input)
 		{
 			auto psi = itensor::randomMPS(sites);
 			walkers.clear();
@@ -43,6 +45,7 @@ class ThermalWalkers{
 			distribution = std::uniform_real_distribution<double>(0.0, 1.0);
 			trial_energy = 0;
 			num_walkers = num_walkers_input;
+			num_max_walkers = num_max_walkers_input;
 		}
 
 		vector<double> expectation_values(itensor::MPO &A){
@@ -204,11 +207,13 @@ class ThermalWalkers{
 				}
 			}
 			for(int MPS_index : to_split){
-				double old_weight = weights[MPS_index];
-				reweight(MPS_index, old_weight/2);
-				walkers.push_back(itensor::MPS(walkers[MPS_index]));
-				weights.push_back(old_weight/2);
-				std::cerr << "Split walker #" << MPS_index << " with original weight " << old_weight << std::endl;
+				if(walkers.size() < num_max_walkers){
+					double old_weight = weights[MPS_index];
+					reweight(MPS_index, old_weight/2);
+					walkers.push_back(itensor::MPS(walkers[MPS_index]));
+					weights.push_back(old_weight/2);
+					std::cerr << "Split walker #" << MPS_index << " with original weight " << old_weight << std::endl;
+				}
 			}
 		}
 

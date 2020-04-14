@@ -42,6 +42,7 @@ int main(int argc, char*argv[]){
 	std::string method = input.GetVariable("configuration_selection");
 	std::string out_file_name = input.GetVariable("out_file");
 	int num_desired_walkers = input.getInteger("num_walkers");
+	int num_max_walkers = input.testInteger("num_max_walkers", num_walkers);
 
 	std::cerr << "Read input files" << endl;
 
@@ -53,7 +54,7 @@ int main(int argc, char*argv[]){
 
 	std::cerr << "Constructing initial High-BD state..." << endl;
 
-	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_desired_walkers);
+	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_desired_walkers, num_max_walkers);
 
 
 	int num_setup_iterations = 100;
@@ -62,12 +63,12 @@ int main(int argc, char*argv[]){
 	}
 	for(int i = 0; i < num_setup_iterations; i++){
 		tw.iterate_single();
-		tw.recalculate_trial_energy(tw.expectation_value(H));
+		tw.recalculate_trial_energy(tw.average_walker_energy(H));
 	}
 	//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
 	while(tw.get_max_bd() <= max_bd){
 		tw.iterate_single_no_truncation();
-		tw.recalculate_trial_energy(tw.expectation_value(H));
+		tw.recalculate_trial_energy(tw.average_walker_energy(H));
 	}
 
 	//tw.shave(1);
