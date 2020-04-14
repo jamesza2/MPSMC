@@ -106,7 +106,7 @@ int main(int argc, char *argv[]){
 	}
 
 	out_file << "\n#BOND_DIMENSIONS:";
-	for(vector<double> bond_dimension_vector : bds){
+	for(vector<int> bond_dimension_vector : bds){
 		out_file << "\n";
 		for(int bd : bond_dimension_vector){
 			out_file << bd << " ";

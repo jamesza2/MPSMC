@@ -34,7 +34,7 @@ class ThermalWalkers{
 			walkers.clear();
 			walkers.push_back(psi);
 			weights.clear();
-			weights.push_back(std::sqrt(itensor::innerC(psi, psi)));
+			weights.push_back(std::sqrt(std::abs(itensor::innerC(psi, psi))));
 			itev = &itev_input;
 			tau = tau_input;
 			max_bd = max_bond_dimension_input;
@@ -177,7 +177,7 @@ class ThermalWalkers{
 					to_split.push_back(MPS_index);
 				}
 			}
-			for(int MPS_index : to_split()){
+			for(int MPS_index : to_split){
 				double old_weight = weights[MPS_index];
 				reweight(MPS_index, old_weight/2);
 				walkers.push_back(itensor::MPS(walkers[MPS_index]));
@@ -248,6 +248,7 @@ class ThermalWalkers{
 			truncate_based_on_selection(truncated_repeats, original_indices, U, S, V, site, MPS_index, singular_value_weight);
 		}
 		void truncate_single_MPS(int MPS_index){
+			int num_sites = itensor::length(walkers[MPS_index]);
 			for(int site = 0; site < num_sites; site++){
 				truncate_single_site_single_MPS(site, MPS_index);
 			}
