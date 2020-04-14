@@ -85,7 +85,7 @@ class ThermalWalkers{
 			int num_sites = itensor::length(walkers[0]);
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				//ev += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]))*weights[MPS_index]/num_sites;
-				ev += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]));
+				ev += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]))/weights[MPS_index];
 			}
 			return ev;
 		}
