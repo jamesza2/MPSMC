@@ -128,7 +128,7 @@ class ThermalWalkers{
 				auto[U,S,V] = svd_on_site(MPS_index, site_of_cut);
 				vector<double> singular_values = abs_diagonal_elems(S);
 				for(double sv : singular_values){
-					double svsq = sv*sv;
+					double svsq = sv*sv/(weights[MPS_index]*weights[MPS_index]);
 					total_ee -= svsq*std::log(svsq);
 				}
 			}
@@ -320,7 +320,10 @@ class ThermalWalkers{
 					}
 				}
 			}
-			double singular_value_weight = sum(singular_values)/truncated_bd;
+			double singular_value_weight = 1;
+			if(truncated_bd != 0){
+				singular_value_weight = sum(singular_values)/truncated_bd;
+			}
 			//std::cerr << "Truncating after selecting singular values..." << std::endl;
 			truncate_based_on_selection(truncated_repeats, original_indices, U, S, V, original_bd, site, MPS_index, singular_value_weight);
 		}
