@@ -213,7 +213,7 @@ class ThermalWalkers{
 					for(auto split_iterator = to_split.begin(); split_iterator != to_split.end(); ++split_iterator){
 						if(weights[*split_iterator] < weights[MPS_index]){
 							stick_at_end = false;
-							to_split.insert(split_iterator);
+							to_split.insert(split_iterator, MPS_index);
 							break;
 						}
 					}
