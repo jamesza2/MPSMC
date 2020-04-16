@@ -36,6 +36,7 @@ int main(int argc, char *argv[]){
 	int num_max_walkers = input.testInteger("num_max_walkers", num_walkers);
 	//std::string mps_file_name = input.GetVariable("mps_file_name");
 	std::string out_file_name = input.GetVariable("out_file");
+	int kept_singular_values = input.testInteger("kept_singular_values", 0);
 	
 
 	std::cerr << "Read input files" << endl;
@@ -54,6 +55,7 @@ int main(int argc, char *argv[]){
 
 
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
+	tw.set_kept_singular_values(kept_singular_values);
 
 
 	std::ofstream out_file(out_file_name);
@@ -64,6 +66,7 @@ int main(int argc, char *argv[]){
 	vector<int> num_current_walkers;
 	vector<vector<int>> bds;
 	vector<double> trial_energies;
+	vector<double> entanglement_entropies;
 	for(int iteration = 0; iteration < num_iterations; iteration++){
 		time_t start_time = time(NULL);
 		trial_energies.push_back(tw.trial_energy);
@@ -76,6 +79,8 @@ int main(int argc, char *argv[]){
 		walker_energies.push_back(energies);
 		walker_weights.push_back(weights);
 		average_energies.push_back(energy);
+		num_current_walkers.push_back(tw.weights.size());
+		entanglement_entropies.push_back(tw.average_entanglement_entropy(num_sites/2));
 		bds.push_back(tw.get_bds());
 		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has average weighted energy " << energy << " among " << weights.size() << " walkers (" << difftime(time(NULL), start_time) << "s)" << std::endl;
 		start_time = time(NULL);
@@ -90,6 +95,10 @@ int main(int argc, char *argv[]){
 	out_file << "\n#AVERAGE_ENERGIES:\n";
 	for(double energy : average_energies){
 		out_file << energy << " ";
+	}
+	out_file << "\n#AVERAGE_ENTROPIES:\n";
+	for(double entropy : entanglement_entropies){
+		out_file << entropy << " ";
 	}
 	out_file << "\n#NUM_WALKERS:\n";
 	for(double nw : num_current_walkers){

@@ -23,6 +23,7 @@ class ThermalWalkers{
 		int num_max_walkers;
 		std::mt19937 generator;
 		std::uniform_real_distribution<double> distribution;
+		int kept_singular_values;
 
 		ThermalWalkers(itensor::SiteSet &sites, 
 			itensor::MPO &itev_input, 
@@ -46,6 +47,11 @@ class ThermalWalkers{
 			trial_energy = 0;
 			num_walkers = num_walkers_input;
 			num_max_walkers = num_max_walkers_input;
+			kept_singular_values = 0;
+		}
+
+		void set_kept_singular_values(int kept_singular_values_input){
+			kept_singular_values = kept_singular_values_input;
 		}
 
 		vector<double> expectation_values(itensor::MPO &A){
@@ -114,6 +120,19 @@ class ThermalWalkers{
 				en += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]))/(weights[MPS_index]*weights[MPS_index]);
 			}
 			return en/walkers.size();
+		}
+
+		double average_entanglement_entropy(int site_of_cut){
+			double total_ee = 0;
+			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
+				auto[U,S,V] = svd_on_site(MPS_index, site);
+				vector<double> singular_values = abs_diagonal_elems(S);
+				for(double sv : singular_values){
+					double svsq = sv*sv;
+					total_ee -= svsq*std::log(svsq);
+				}
+			}
+			return total_ee/walkers.size();
 		}
 
 		//Iterate floor(beta/tau) times, automatically truncating when it gets beyond certain bond dimensions
@@ -286,6 +305,9 @@ class ThermalWalkers{
 			std::vector<double> singular_values = abs_diagonal_elems(S);
 			int original_bd = singular_values.size();
 			std::vector<int> repeats(original_bd,0);
+			for(int excluded_index = 0; excluded_index < kept_singular_values; excluded_index++){
+				singular_values[excluded_index] = 0;
+			}
 			int final_truncated_bd = random_weighted(singular_values, truncated_bd, repeats);
 			vector<int> truncated_repeats;
 			vector<int> original_indices;
@@ -325,19 +347,23 @@ class ThermalWalkers{
 				int MPS_index,
 				double singular_value_weight)
 		{
+			std::vector<double> singular_values = abs_diagonal_elems(S);
 			auto V_original_index = itensor::commonIndex(S,V);
 			auto U_original_index = itensor::commonIndex(U,S);
 			itensor::MPS & psi = walkers.at(MPS_index);
 			int final_truncated_bd = truncated_repeats.size();
 			//Turn those random elements into screening matrices to apply to U, S and V
 			//std::cerr << "Creating truncation tensor...";
-			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(site));
+			itensor::Index T_truncated_index(final_truncated_bd+kept_singular_values,"Link,l="+std::to_string(site));
 			itensor::Index T_original_index(original_bd,"original");
 			itensor::Index T_truncated_index_primed = itensor::prime(T_truncated_index, 1);
 			itensor::ITensor T(T_truncated_index, T_original_index);
-			int repeat_index = 1;
+			for(int repeat_index = 1; repeat_index <= kept_singular_values; repeat_index ++){
+				T.set(T_truncated_index = repeat_index, T_original_index = repeat_index, 1.0);
+			}
+
 			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
-				T.set(T_truncated_index = repeat_index, T_original_index = original_indices[repeat_index-1], 1.0);
+				T.set(T_truncated_index = repeat_index + kept_singular_values, T_original_index = original_indices[repeat_index-1], 1.0);
 			}
 			//Print(T);
 			
@@ -348,8 +374,11 @@ class ThermalWalkers{
 			U = U*(T*itensor::delta(T_original_index, U_original_index));
 			S = S*(T*itensor::delta(T_original_index, U_original_index))*(T*itensor::delta(T_original_index,V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
 			//Turn S's diagonal elements into repeat numbers
+			for(int repeat_index = 1; repeat_index <= kept_singular_values; repeat_index ++){
+				S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, singular_values[repeat_index-1]);
+			}
 			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
-				S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, singular_value_weight*truncated_repeats[repeat_index-1]);
+				S.set(T_truncated_index = repeat_index + kept_singular_values, T_truncated_index_primed = repeat_index + kept_singular_values, singular_value_weight*truncated_repeats[repeat_index-1]);
 			}
 			//Collect new U into current matrix, S*V into the forward matrix
 			psi.ref(site) = U;
