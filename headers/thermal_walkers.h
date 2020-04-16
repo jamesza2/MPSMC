@@ -305,16 +305,18 @@ class ThermalWalkers{
 			std::vector<double> singular_values = abs_diagonal_elems(S);
 			int original_bd = singular_values.size();
 			std::vector<int> repeats(original_bd,0);
-			for(int excluded_index = 0; excluded_index < kept_singular_values; excluded_index++){
-				singular_values[excluded_index] = 0;
-			}
-			int final_truncated_bd = random_weighted(singular_values, truncated_bd, repeats);
-			vector<int> truncated_repeats;
-			vector<int> original_indices;
-			for(int i = 0; i < repeats.size(); i++){
-				if(repeats[i] != 0){
-					truncated_repeats.push_back(repeats[i]);
-					original_indices.push_back(i+1);
+			if(kept_singular_values < original_bd){
+				for(int excluded_index = 0; excluded_index < kept_singular_values; excluded_index++){
+					singular_values[excluded_index] = 0;
+				}
+				int final_truncated_bd = random_weighted(singular_values, truncated_bd, repeats);
+				vector<int> truncated_repeats;
+				vector<int> original_indices;
+				for(int i = 0; i < repeats.size(); i++){
+					if(repeats[i] != 0){
+						truncated_repeats.push_back(repeats[i]);
+						original_indices.push_back(i+1);
+					}
 				}
 			}
 			double singular_value_weight = sum(singular_values)/truncated_bd;
@@ -350,6 +352,15 @@ class ThermalWalkers{
 			std::vector<double> singular_values = abs_diagonal_elems(S);
 			auto V_original_index = itensor::commonIndex(S,V);
 			auto U_original_index = itensor::commonIndex(U,S);
+			if(kept_singular_values >= original_bd){
+				//Do nothing to truncate or change S
+				psi.ref(site) = U;
+				psi.ref(site+1) = S*V;
+				auto link_indices = itensor::linkInds(psi);
+				link_indices(site) = U_original_index;
+				psi.replaceLinkInds(link_indices);
+				return;
+			}
 			itensor::MPS & psi = walkers.at(MPS_index);
 			int final_truncated_bd = truncated_repeats.size();
 			//Turn those random elements into screening matrices to apply to U, S and V
