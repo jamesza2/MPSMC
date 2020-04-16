@@ -206,7 +206,21 @@ class ThermalWalkers{
 			vector<int> to_split;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(weights[MPS_index] > 2){
-					to_split.push_back(MPS_index);
+					/*if(to_split.size() < 1){
+						to_split.push_back(MPS_index);
+					}*/
+					bool stick_at_end = true;
+					for(auto split_iterator = to_split.begin(); split_iterator != to_split.end(); ++split_iterator){
+						if(weights[*split_iterator] < weights[MPS_index]){
+							stick_at_end = false;
+							to_split.insert(split_iterator);
+							break;
+						}
+					}
+					if(stick_at_end){
+						to_split.push_back(MPS_index);
+					}
+					//to_split.push_back(MPS_index);
 				}
 			}
 			for(int MPS_index : to_split){
