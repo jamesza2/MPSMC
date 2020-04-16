@@ -72,7 +72,7 @@ int main(int argc, char *argv[]){
 
 		vector<double> energies = tw.expectation_values(H);
 		vector<double> weights = tw.get_weights();
-		tw.recalculate_trial_energy(tw.average_walker_energy(H));
+		tw.recalculate_trial_energy(energy);
 		walker_energies.push_back(energies);
 		walker_weights.push_back(weights);
 		average_energies.push_back(energy);

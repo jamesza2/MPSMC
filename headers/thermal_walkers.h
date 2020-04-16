@@ -95,13 +95,16 @@ class ThermalWalkers{
 
 		//Energies of each MPS weighted by weights
 		double expectation_value(itensor::MPO &A){
-			double ev = 0;
+			auto trial_wavefunction = walkers[0];
+			double weighted_energy = 0;
+			double weighted_sum = 0;
+
 			int num_sites = itensor::length(walkers[0]);
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
-				//ev += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]))*weights[MPS_index]/num_sites;
-				ev += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]))/weights[MPS_index];
+				weighted_energy += std::real(itensor::innerC(trial_wavefunction, A, walkers[MPS_index]));
+				weighted_sum += std::real(itensor::innerC(trial_wavefunction, walkers[MPS_index]));
 			}
-			return ev/(sum(weights)*num_sites);
+			return weighted_energy/(weighted_sum*num_sites);
 		}
 
 		//Unweighted average energy of each MPS
