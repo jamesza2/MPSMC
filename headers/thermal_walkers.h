@@ -125,7 +125,7 @@ class ThermalWalkers{
 		double average_entanglement_entropy(int site_of_cut){
 			double total_ee = 0;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
-				auto[U,S,V] = svd_on_site(MPS_index, site);
+				auto[U,S,V] = svd_on_site(MPS_index, site_of_cut);
 				vector<double> singular_values = abs_diagonal_elems(S);
 				for(double sv : singular_values){
 					double svsq = sv*sv;
