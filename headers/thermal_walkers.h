@@ -353,6 +353,7 @@ class ThermalWalkers{
 			std::vector<double> singular_values = abs_diagonal_elems(S);
 			auto V_original_index = itensor::commonIndex(S,V);
 			auto U_original_index = itensor::commonIndex(U,S);
+			itensor::MPS & psi = walkers.at(MPS_index);
 			if(kept_singular_values >= original_bd){
 				//Do nothing to truncate or change S
 				psi.ref(site) = U;
@@ -362,7 +363,7 @@ class ThermalWalkers{
 				psi.replaceLinkInds(link_indices);
 				return;
 			}
-			itensor::MPS & psi = walkers.at(MPS_index);
+			
 			int final_truncated_bd = truncated_repeats.size();
 			//Turn those random elements into screening matrices to apply to U, S and V
 			//std::cerr << "Creating truncation tensor...";
