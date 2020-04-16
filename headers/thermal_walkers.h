@@ -305,13 +305,14 @@ class ThermalWalkers{
 			std::vector<double> singular_values = abs_diagonal_elems(S);
 			int original_bd = singular_values.size();
 			std::vector<int> repeats(original_bd,0);
+			vector<int> truncated_repeats;
+			vector<int> original_indices;
 			if(kept_singular_values < original_bd){
 				for(int excluded_index = 0; excluded_index < kept_singular_values; excluded_index++){
 					singular_values[excluded_index] = 0;
 				}
 				int final_truncated_bd = random_weighted(singular_values, truncated_bd, repeats);
-				vector<int> truncated_repeats;
-				vector<int> original_indices;
+				
 				for(int i = 0; i < repeats.size(); i++){
 					if(repeats[i] != 0){
 						truncated_repeats.push_back(repeats[i]);
