@@ -7,6 +7,15 @@
 #include <cmath>
 #include <complex>
 
+/*vector<double> sort_by(vector<double> &values, vector<double> &sorter){
+	if(sorter.size() != values.size()){
+
+	}
+	vector<double> sorted_values;
+	for(double val : sorter){
+
+	}
+}*/
 
 int main(int argc, char *argv[]){
 	int target_argc = 2;
@@ -63,6 +72,7 @@ int main(int argc, char *argv[]){
 	vector<double> average_energies;
 	vector<vector<double>> walker_energies;
 	vector<vector<double>> walker_weights;
+	vector<vector<double>> walker_overlaps;
 	vector<int> num_current_walkers;
 	vector<vector<int>> bds;
 	vector<double> trial_energies;
@@ -75,9 +85,11 @@ int main(int argc, char *argv[]){
 
 		vector<double> energies = tw.expectation_values(H);
 		vector<double> weights = tw.get_weights();
+		vector<double> overlaps = tw.weighted_overlaps();
 		tw.recalculate_trial_energy(energy);
 		walker_energies.push_back(energies);
 		walker_weights.push_back(weights);
+		walker_overlaps.push_back(overlaps);
 		average_energies.push_back(energy);
 		num_current_walkers.push_back(tw.weights.size());
 		entanglement_entropies.push_back(tw.average_entanglement_entropy(num_sites/2));
@@ -113,6 +125,13 @@ int main(int argc, char *argv[]){
 		out_file << "\n";
 		for(double walker_energy : walker_energy_vector){
 			out_file << walker_energy << " ";
+		}
+	}
+	out_file << "\n#WALKER_OVERLAPS:";
+	for(vector<double> walker_overlap_vector : walker_overlaps){
+		out_file << "\n";
+		for(double walker_overlap : walker_overlap_vector){
+			out_file << walker_overlap << " ";
 		}
 	}
 	out_file << "\n#WALKER_WEIGHTS:";

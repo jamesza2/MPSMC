@@ -14,6 +14,7 @@ class ThermalWalkers{
 		vector<itensor::MPS> walkers;
 		vector<double> weights;
 		itensor::MPO *itev;
+		itensor::MPS trial_wavefunction;
 		double tau; //Iterate it N times to time evolve by beta = N*tau
 		int max_bd;
 		int truncated_bd;
@@ -34,6 +35,7 @@ class ThermalWalkers{
 			int num_max_walkers_input)
 		{
 			auto psi = itensor::randomMPS(sites);
+			trial_wavefunction = itensor::MPS(psi);
 			walkers.clear();
 			walkers.push_back(psi);
 			weights.clear();
@@ -50,18 +52,25 @@ class ThermalWalkers{
 			kept_singular_values = 0;
 		}
 
+		void set_trial_wavefunction(itensor::MPS &new_trial_wavefunction){
+			trial_wavefunction = itensor::MPS(new_trial_wavefunction);
+		}
+
 		void set_kept_singular_values(int kept_singular_values_input){
 			kept_singular_values = kept_singular_values_input;
 		}
 
 		vector<double> expectation_values(itensor::MPO &A){
+			//auto trial_wavefunction = walkers[0];
 			vector<double> evs;
 			int num_sites = itensor::length(walkers[0]);
 			for(auto MPS_iter = walkers.begin(); MPS_iter != walkers.end(); ++MPS_iter){
-				evs.push_back(std::real(itensor::innerC(*MPS_iter, A, *MPS_iter))/num_sites);
+				evs.push_back(std::real(itensor::innerC(trial_wavefunction, A, *MPS_iter))/num_sites);
 			}
 			return evs;
 		}
+
+
 
 		vector<double> get_weights(){
 			vector<double> w;
@@ -90,6 +99,14 @@ class ThermalWalkers{
 			return ovs;
 		}
 
+		vector<double> weighted_overlaps(itensor::MPS &psi_other){
+			vector<double> ovs;
+			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
+				ovs.push_back(std::real(itensor::innerC(walkers[MPS_index], psi_other)));
+			}
+			return ovs;
+		}
+
 		//Overlap <psi_other|psi> weighted by weights (no need to multiply weights as we already have |psi>)
 		double overlap(itensor::MPS &psi_other){
 			double ov = 0;
@@ -101,7 +118,7 @@ class ThermalWalkers{
 
 		//Energies of each MPS weighted by weights
 		double expectation_value(itensor::MPO &A){
-			auto trial_wavefunction = walkers[0];
+			//auto trial_wavefunction = walkers[0];
 			double weighted_energy = 0;
 			double weighted_sum = 0;
 
