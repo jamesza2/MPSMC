@@ -30,6 +30,7 @@ int main(int argc, char *argv[]){
 	double h = input.getDouble("external_field");
 	int num_iterations = input.getInteger("num_iterations");
 	std::string out_file_name = input.GetVariable("out_file");
+	std::string mps_file_name = input.GetVariable("mps_file");
 	
 
 	std::cerr << "Read input files" << endl;
@@ -61,6 +62,7 @@ int main(int argc, char *argv[]){
 		psi = new_psi;
 		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has energy " << energy << endl;
 	}
+	itensor::writeToFile(mps_file_name, psi);
 
 	out_file << "#MAX_BOND_DIMENSION:\n" << max_bd;
 	out_file << "\n#JZ:\n" << Jz;
