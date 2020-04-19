@@ -115,8 +115,11 @@ class ThermalSystem{
 			truncated_bd = new_truncated_bd;
 		}
 
-		void truncate_metropolis_single_site(int site, int num_steps, int num_samples){
-			//Will execute
+		void truncate_unnormalized_single_site(int site){
+
+		}
+
+		std::tuple<itensor::ITensor, itensor::ITensor, itensor::ITensor> svd_on_site(int site){
 			auto site_tensor = psi(site);
 			auto neighbor_tensor = psi(site+1);
 			auto combined_tensor = site_tensor*neighbor_tensor;
@@ -126,7 +129,53 @@ class ThermalSystem{
 				auto left_link = itensor::leftLinkIndex(psi, site);
 				Uindices = itensor::unionInds(left_link, Uindices);
 			}
-			auto [U,S,V] = itensor::svd(combined_tensor, Uindices);
+			return itensor::svd(combined_tensor, Uindices);
+		}
+
+		void truncate_based_on_selection(std::vector<int> &truncated_repeats, 
+				std::vector<int> &original_indices,
+				itensor::ITensor &U,
+				itensor::ITensor &S,
+				itensor::ITensor &V,
+				int site)
+		{
+			int final_truncated_bd = truncated_repeats.size();
+			//Turn those random elements into screening matrices to apply to U, S and V
+			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(site));
+			itensor::Index T_original_index(original_bd,"original");
+			itensor::Index T_truncated_index_primed = itensor::prime(T_truncated_index, 1);
+			itensor::ITensor T(T_truncated_index, T_original_index);
+			int repeat_index = 1;
+			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
+				T.set(T_truncated_index = repeat_index, T_original_index = original_indices[repeat_index-1], 1.0);
+			}
+			
+			//Apply them to U, S and V
+			//Should change U to U*T, S to T*S*T and V to T*S
+			V = V*(T*itensor::delta(T_original_index, V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
+			U = U*(T*itensor::delta(T_original_index, U_original_index));
+			S = S*(T*itensor::delta(T_original_index, U_original_index))*(T*itensor::delta(T_original_index,V_original_index)*itensor::delta(T_truncated_index, T_truncated_index_primed));
+			double norm_of_new_wavefunction = std::sqrt(norm_squared(truncated_repeats));
+			//Turn S's diagonal elements into repeat numbers
+			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
+				double new_weight = 1.0*truncated_repeats[repeat_index-1]/norm_of_new_wavefunction;
+				if(keep_weight){
+					new_weight = singular_values[original_indices[repeat_index-1]-1];
+				}
+				S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, 1.0*truncated_repeats[repeat_index-1]/norm_of_new_wavefunction);
+			}
+			//Collect new U into current matrix, S*V into the forward matrix
+			psi.ref(site) = U;
+			psi.ref(site+1) = S*V;
+			//Readjust link indices
+			auto link_indices = itensor::linkInds(psi);
+			link_indices(site) = T_truncated_index;
+			psi.replaceLinkInds(link_indices);
+		}
+
+		void truncate_metropolis_single_site(int site, int num_steps, int num_samples){
+			//Will execute
+			auto [U,S,V] = svd_on_site(site);
 			auto V_original_index = itensor::commonIndex(S,V);
 			auto U_original_index = itensor::commonIndex(U,S);
 			std::vector<double> singular_values = abs_diagonal_elems(S);
@@ -193,17 +242,19 @@ class ThermalSystem{
 			}
 			estimated_error *= new_estimated_error/num_samples;
 
-			int final_truncated_bd = 0;
+			//int final_truncated_bd = 0;
 			std::vector<int> truncated_repeats; //Repeats but with all zero elements removed
 			std::vector<int> original_indices; //The original index that elements in truncated_repeats correspond to
 			for(int original_index = 1; original_index <= original_bd; original_index ++){
 				if(repeats[original_index-1] > 0){
 					original_indices.push_back(original_index);
 					truncated_repeats.push_back(repeats[original_index-1]);
-					final_truncated_bd += 1;
+					//final_truncated_bd += 1;
 				}
 			}
 
+			truncate_based_on_selection(truncated_repeats, original_indices, U, S, V, site);
+			/*
 			//Turn those random elements into screening matrices to apply to U, S and V
 			itensor::Index T_truncated_index(final_truncated_bd,"Link,l="+std::to_string(site));
 			itensor::Index T_original_index(original_bd,"original");
@@ -234,7 +285,7 @@ class ThermalSystem{
 			//Readjust link indices
 			auto link_indices = itensor::linkInds(psi);
 			link_indices(site) = T_truncated_index;
-			psi.replaceLinkInds(link_indices);
+			psi.replaceLinkInds(link_indices);*/
 
 		}
 

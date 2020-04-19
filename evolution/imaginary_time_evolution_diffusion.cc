@@ -17,6 +17,17 @@
 	}
 }*/
 
+void read_from_file(itensor::SiteSet &sites, std::string mps_file_name, itensor::MPS &psi){
+	itensor::readFromFile(mps_file_name, psi);
+	auto index_set = itensor::siteInds(psi);
+	vector<itensor::Index> indices;
+	int num_sites = itensor::length(sites);
+	for(int site = 0; site < num_sites; site++){
+		indices.push_back(index_set(site+1));
+	}
+	sites = itensor::SpinHalf(indices);
+}
+
 int main(int argc, char *argv[]){
 	int target_argc = 2;
 	if(argc != target_argc){
@@ -46,6 +57,7 @@ int main(int argc, char *argv[]){
 	//std::string mps_file_name = input.GetVariable("mps_file_name");
 	std::string out_file_name = input.GetVariable("out_file");
 	int kept_singular_values = input.testInteger("kept_singular_values", 0);
+	std::string trial_wavefunction_file_name = input.testString("trial_wavefunction_file", "");
 	
 
 	std::cerr << "Read input files" << endl;
@@ -53,6 +65,11 @@ int main(int argc, char *argv[]){
 	//Create XXZ Hamiltonian
 
 	itensor::SiteSet sites = itensor::SpinHalf(num_sites, {"ConserveQNs=", false});
+
+	itensor::MPS trial(sites);
+	if(trial_wavefunction_file_name != ""){
+		read_from_file(sites, trial_wavefunction_file_name, trial);
+	}
 
 	OperatorMaker opm(sites);
 	auto ampo = opm.XXZHamiltonian(Jz, h);
@@ -65,7 +82,10 @@ int main(int argc, char *argv[]){
 
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
 	tw.set_kept_singular_values(kept_singular_values);
-
+	
+	if(trial_wavefunction_file_name != ""){
+		tw.set_trial_wavefunction(trial);
+	}
 
 	std::ofstream out_file(out_file_name);
 	//out_file << "Energy|Bond Dimension|Max Sz" << endl;
