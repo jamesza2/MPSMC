@@ -35,11 +35,11 @@ class ThermalWalkers{
 			int num_max_walkers_input)
 		{
 			auto psi = itensor::randomMPS(sites);
-			trial_wavefunction = itensor::MPS(psi);
 			walkers.clear();
-			walkers.push_back(psi);
+			walkers.push_back(itensor::MPS(psi));
 			weights.clear();
 			weights.push_back(std::sqrt(std::abs(itensor::innerC(psi, psi))));
+			trial_wavefunction = itensor::MPS(psi);
 			itev = &itev_input;
 			tau = tau_input;
 			max_bd = max_bond_dimension_input;
