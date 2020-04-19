@@ -80,6 +80,15 @@ class InputClass
     }
   }
 
+  string testString(string myString, string def = ""){
+    if(IsVariable(myString)){
+      return GetVariable(myString);
+    }
+    else{
+      return def;
+    }
+  }
+
   bool toBool(string myString)
   {
     if ((myString=="True") || (myString=="true"))
