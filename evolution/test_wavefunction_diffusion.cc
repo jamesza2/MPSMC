@@ -14,6 +14,17 @@ double sum(std::vector<double> v){
 	return s;
 }
 
+void read_from_file(itensor::SiteSet &sites, std::string mps_file_name, itensor::MPS &psi){
+	itensor::readFromFile(mps_file_name, psi);
+	auto index_set = itensor::siteInds(psi);
+	vector<itensor::Index> indices;
+	int num_sites = itensor::length(sites);
+	for(int site = 0; site < num_sites; site++){
+		indices.push_back(index_set(site+1));
+	}
+	sites = itensor::SpinHalf(indices);
+}
+
 int main(int argc, char*argv[]){
 	
 	int target_argc = 2;
@@ -53,23 +64,26 @@ int main(int argc, char*argv[]){
 
 	std::cerr << "Constructing initial High-BD state..." << endl;
 
-	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_desired_walkers, num_max_walkers);
+	
 	itensor::MPS trial(sites);
 	if(trial_wavefunction_file_name != ""){
 		
 		if(trial_wavefunction_file_name != ""){
 			read_from_file(sites, trial_wavefunction_file_name, trial);
 		}
-		tw.set_MPS(trial);
-		tw.set_trial_wavefunction(trial);
+		
 	}
 
 	OperatorMaker opm(sites);
 	auto ampo = opm.XXZHamiltonian(Jz, h);
 	itensor::MPO itev = itensor::toExpH(ampo, tau);
 	itensor::MPO H = itensor::toMPO(ampo);
-
-	if(trial_wavefunction_file_name == ""){
+	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_desired_walkers, num_max_walkers);
+	if(trial_wavefunction_file_name != ""){
+		tw.set_MPS(trial,0);
+		tw.set_trial_wavefunction(trial);
+	}
+	else{
 		int num_setup_iterations = 100;
 		if(input.IsVariable("num_setup_iterations")){
 			num_setup_iterations = input.getInteger("num_setup_iterations");
@@ -205,7 +219,7 @@ int main(int argc, char*argv[]){
 		}
 	}
 	out_file << "\n#MATRIX_ELEMENTS:";
-	for(vector<double> mess : individual_mes){
+	for(vector<double> mes : individual_mes){
 		out_file << "\n";
 		for(double me : mes){
 			out_file << me << " ";
