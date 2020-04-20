@@ -146,7 +146,9 @@ class ThermalWalkers{
 				vector<double> singular_values = abs_diagonal_elems(S);
 				for(double sv : singular_values){
 					double svsq = sv*sv/(weights[MPS_index]*weights[MPS_index]);
-					total_ee -= svsq*std::log(svsq);
+					if(svsq != 0){
+						total_ee -= svsq*std::log(svsq);
+					}
 				}
 			}
 			return total_ee/walkers.size();

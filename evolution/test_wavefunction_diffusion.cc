@@ -43,35 +43,49 @@ int main(int argc, char*argv[]){
 	std::string out_file_name = input.GetVariable("out_file");
 	int num_desired_walkers = input.getInteger("num_walkers");
 	int num_max_walkers = input.testInteger("num_max_walkers", num_desired_walkers);
+	std::string trial_wavefunction_file_name = input.testString("trial_wavefunction_file", "");
+
 
 	std::cerr << "Read input files" << endl;
 
 	itensor::SiteSet sites = itensor::SpinHalf(num_sites, {"ConserveQNs=", false});
+	
+
+	std::cerr << "Constructing initial High-BD state..." << endl;
+
+	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_desired_walkers, num_max_walkers);
+	itensor::MPS trial(sites);
+	if(trial_wavefunction_file_name != ""){
+		
+		if(trial_wavefunction_file_name != ""){
+			read_from_file(sites, trial_wavefunction_file_name, trial);
+		}
+		tw.set_MPS(trial);
+		tw.set_trial_wavefunction(trial);
+	}
+
 	OperatorMaker opm(sites);
 	auto ampo = opm.XXZHamiltonian(Jz, h);
 	itensor::MPO itev = itensor::toExpH(ampo, tau);
 	itensor::MPO H = itensor::toMPO(ampo);
 
-	std::cerr << "Constructing initial High-BD state..." << endl;
+	if(trial_wavefunction_file_name == ""){
+		int num_setup_iterations = 100;
+		if(input.IsVariable("num_setup_iterations")){
+			num_setup_iterations = input.getInteger("num_setup_iterations");
+		}
+		for(int i = 0; i < num_setup_iterations; i++){
+			tw.iterate_single();
+			tw.recalculate_trial_energy(tw.average_walker_energy(H));
+		}
+		//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
+		while(tw.get_max_bd() <= max_bd){
+			tw.iterate_single_no_truncation();
+			tw.recalculate_trial_energy(tw.average_walker_energy(H));
+		}
 
-	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_desired_walkers, num_max_walkers);
-
-
-	int num_setup_iterations = 100;
-	if(input.IsVariable("num_setup_iterations")){
-		num_setup_iterations = input.getInteger("num_setup_iterations");
 	}
-	for(int i = 0; i < num_setup_iterations; i++){
-		tw.iterate_single();
-		tw.recalculate_trial_energy(tw.average_walker_energy(H));
-	}
-	//Repeatedly applying itev to psi in order to create an MPS with >max_bd bond dimension
-	while(tw.get_max_bd() <= max_bd){
-		tw.iterate_single_no_truncation();
-		tw.recalculate_trial_energy(tw.average_walker_energy(H));
-	}
-
-	//tw.shave(1);
+		//tw.shave(1);
 
 	auto original_psis = tw.get_all_MPS();
 
@@ -124,7 +138,6 @@ int main(int argc, char*argv[]){
 	
 	itensor::MPS random_config(random_config_init);
 	
-
 	//double original_overlap = std::real(itensor::innerC(original_psi, random_config))/std::sqrt(std::abs(itensor::innerC(original_psi, original_psi)*itensor::innerC(random_config, random_config)));
 	double original_overlap = tw.overlap(random_config);
 	vector<double> original_overlaps = tw.overlaps(random_config);
@@ -135,6 +148,8 @@ int main(int argc, char*argv[]){
 	vector<int> num_walkers;
 	vector<vector<double>> individual_overlaps;
 	vector<vector<double>> walker_weights;
+	vector<vector<double>> individual_mes;
+	vector<vector<double>> individual_fidelities;
 
 	time_t start_time = std::time(NULL);
 	for(int i = 0; i < num_truncations; i++){
@@ -142,7 +157,16 @@ int main(int argc, char*argv[]){
 		tw.process();
 		double ov = tw.overlap(random_config);
 		overlaps.push_back(ov);
-		individual_overlaps.push_back(tw.overlaps(random_config));
+		vector<double> ovs = tw.overlaps(random_config);
+		vector<double> fids = ovs;
+		vector<double> mes;
+		if(trial_wavefunction_file_name != ""){
+			fids = tw.weighted_overlaps(trial);
+			mes = tw.expectation_values(H);
+		}
+		individual_mes.push_back(mes);
+		individual_fidelities.push_back(fids);
+		individual_overlaps.push_back(ovs);
 		num_walkers.push_back(tw.weights.size());
 		vector<double> ww = tw.weights;
 		walker_weights.push_back(ww);
@@ -156,7 +180,7 @@ int main(int argc, char*argv[]){
 
 	ofstream out_file(out_file_name);
 	out_file << "#NUM_EXPECTED_WALKERS:\n" << num_desired_walkers;
-	out_file << "\n#NUM_TRUNCATIONS:" << num_truncations;
+	out_file << "\n#NUM_TRUNCATIONS:\n" << num_truncations;
 	out_file << "\n#ORIGINAL_OVERLAP:\n" << original_overlap;
 	out_file << "\n#TRUNCATED_OVERLAPS:";
 	for(double overlap : overlaps){
@@ -173,18 +197,25 @@ int main(int argc, char*argv[]){
 			out_file << iov << " ";
 		}
 	}
-	out_file << "\n#INDIVIDUAL_OVERLAPS:";
-	for(vector<double> iovs : individual_overlaps){
-		out_file << "\n";
-		for(double iov : iovs){
-			out_file << iov << " ";
-		}
-	}
 	out_file << "\n#WALKER_WEIGHTS:";
 	for(vector<double> wws : walker_weights){
 		out_file << "\n";
 		for(double ww : wws){
 			out_file << ww << " ";
+		}
+	}
+	out_file << "\n#MATRIX_ELEMENTS:";
+	for(vector<double> mess : individual_mes){
+		out_file << "\n";
+		for(double me : mes){
+			out_file << me << " ";
+		}
+	}
+	out_file << "\n#TRIAL_OVERLAPS:";
+	for(vector<double> fids : individual_fidelities){
+		out_file << "\n";
+		for(double fid : fids){
+			out_file << fid << " ";
 		}
 	}
 	out_file.close();

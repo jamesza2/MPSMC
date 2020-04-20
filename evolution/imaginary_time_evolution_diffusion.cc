@@ -106,6 +106,12 @@ int main(int argc, char *argv[]){
 		vector<double> energies = tw.expectation_values(H);
 		vector<double> weights = tw.get_weights();
 		vector<double> overlaps = tw.weighted_overlaps(tw.trial_wavefunction);
+		/*if(trial_wavefunction_file_name != ""){
+			overlaps = tw.weighted_overlaps(trial);
+		}
+		else{
+			overlaps = tw.weighted_overlaps(tw.trial_wavefunction);
+		}*/
 		tw.recalculate_trial_energy(energy);
 		walker_energies.push_back(energies);
 		walker_weights.push_back(weights);
