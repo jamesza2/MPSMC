@@ -81,7 +81,6 @@ int main(int argc, char*argv[]){
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_desired_walkers, num_max_walkers);
 	if(trial_wavefunction_file_name != ""){
 		tw.set_MPS(trial,0);
-		tw.set_trial_wavefunction(trial);
 	}
 	else{
 		int num_setup_iterations = 100;
@@ -151,6 +150,7 @@ int main(int argc, char*argv[]){
 	}
 	
 	itensor::MPS random_config(random_config_init);
+	tw.set_trial_wavefunction(random_config);
 	
 	//double original_overlap = std::real(itensor::innerC(original_psi, random_config))/std::sqrt(std::abs(itensor::innerC(original_psi, original_psi)*itensor::innerC(random_config, random_config)));
 	double original_overlap = tw.overlap(random_config);
@@ -175,7 +175,7 @@ int main(int argc, char*argv[]){
 		vector<double> fids = ovs;
 		vector<double> mes;
 		if(trial_wavefunction_file_name != ""){
-			fids = tw.weighted_overlaps(trial);
+			fids = tw.weighted_overlaps(random_config);
 			mes = tw.expectation_values(H);
 		}
 		individual_mes.push_back(mes);
@@ -184,7 +184,8 @@ int main(int argc, char*argv[]){
 		num_walkers.push_back(tw.weights.size());
 		vector<double> ww = tw.weights;
 		walker_weights.push_back(ww);
-		std::cerr << "Overlap with configuration: " << ov;
+		std::cerr << "Overlap with configuration: " << ov << std::endl;
+		std::cerr << "First BD: " << tw.get_bds()[0] << std::endl;
 		std::cerr << " (" << i+1 << "/" << num_truncations << ", " << std::difftime(time(NULL), start_time) << "s)" <<  std::endl;
 		start_time = time(NULL);
 	}
