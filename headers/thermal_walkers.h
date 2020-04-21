@@ -70,7 +70,7 @@ class ThermalWalkers{
 				if(std::real(me_complex) < 10.0*std::imag(me_complex)){
 					std::cerr << "WARNING: Matrix Element of " << me_complex << " has significant imaginary part" << std::endl;
 				}
-				evs.push_back(std::real(itensor::innerC(me_complex))/num_sites);
+				evs.push_back(std::real(me_complex)/num_sites);
 			}
 			return evs;
 		}
