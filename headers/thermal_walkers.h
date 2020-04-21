@@ -163,18 +163,18 @@ class ThermalWalkers{
 		}
 
 		void process(){
-			std::cerr << "  Walker weights: ";
+			/*std::cerr << "  Walker weights: ";
 			for(double weight : weights){
 				std::cerr << weight << " ";
 			}
-			std::cerr << std::endl;
+			std::cerr << std::endl;*/
 			combine_walkers();
 			split_walkers();
-			std::cerr << "    Recombined walker weights: ";
+			/*std::cerr << "    Recombined walker weights: ";
 			for(double weight : weights){
 				std::cerr << weight << " ";
 			}
-			std::cerr << std::endl;
+			std::cerr << std::endl;*/
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
 					//std::cerr << "Truncating MPSs..." << std::endl;
@@ -182,11 +182,11 @@ class ThermalWalkers{
 					reweight(MPS_index);
 				}
 			}
-			std::cerr << "      New walker weights: ";
+			/*std::cerr << "      New walker weights: ";
 			for(double weight : weights){
 				std::cerr << weight << " ";
 			}
-			std::cerr << std::endl;
+			std::cerr << std::endl;*/
 			recalculate_trial_energy();
 		}
 
