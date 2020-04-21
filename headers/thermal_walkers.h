@@ -65,7 +65,12 @@ class ThermalWalkers{
 			vector<double> evs;
 			int num_sites = itensor::length(walkers[0]);
 			for(auto MPS_iter = walkers.begin(); MPS_iter != walkers.end(); ++MPS_iter){
-				evs.push_back(std::real(itensor::innerC(trial_wavefunction, A, *MPS_iter))/num_sites);
+
+				std::complex<double> me_complex = itensor::innerC(trial_wavefunction, A, *MPS_iter);
+				if(std::real(me_complex) < 10.0*std::imag(me_complex)){
+					std::cerr << "WARNING: Matrix Element of " << me_complex << " has significant imaginary part" << std::endl;
+				}
+				evs.push_back(std::real(itensor::innerC(me_complex))/num_sites);
 			}
 			return evs;
 		}
@@ -94,7 +99,11 @@ class ThermalWalkers{
 			//double norm2 = std::sqrt(std::abs(itensor::innerC(psi_other, psi_other)));
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				//double norm1 = std::sqrt(std::abs(itensor::innerC(*MPS_iter, *MPS_iter)));
-				ovs.push_back(std::real(itensor::innerC(walkers[MPS_index], psi_other))/weights[MPS_index]);
+				std::complex<double> overlap_complex = itensor::innerC(walkers[MPS_index], psi_other);
+				if(std::real(overlap_complex) < 10.0*std::imag(overlap_complex)){
+					std::cerr << "WARNING: Overlap of " << overlap_complex << " has significant imaginary part" << std::endl;
+				}
+				ovs.push_back(std::real(overlap_complex)/weights[MPS_index]);
 			}
 			return ovs;
 		}
@@ -102,7 +111,11 @@ class ThermalWalkers{
 		vector<double> weighted_overlaps(itensor::MPS &psi_other){
 			vector<double> ovs;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
-				ovs.push_back(std::real(itensor::innerC(walkers[MPS_index], psi_other)));
+				std::complex<double> overlap_complex = itensor::innerC(walkers[MPS_index], psi_other);
+				if(std::real(overlap_complex) < 10.0*std::imag(overlap_complex)){
+					std::cerr << "WARNING: Overlap of " << overlap_complex << " has significant imaginary part" << std::endl;
+				}
+				ovs.push_back(std::real(overlap_complex));
 			}
 			return ovs;
 		}
