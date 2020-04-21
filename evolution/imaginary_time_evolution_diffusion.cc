@@ -100,7 +100,9 @@ int main(int argc, char *argv[]){
 	for(int iteration = 0; iteration < num_iterations; iteration++){
 		time_t start_time = time(NULL);
 		trial_energies.push_back(tw.trial_energy);
-		tw.iterate_single();
+		if(iteration > 0){
+			tw.iterate_single();
+		}
 		double energy = tw.expectation_value(H);
 
 		vector<double> energies = tw.expectation_values(H);
