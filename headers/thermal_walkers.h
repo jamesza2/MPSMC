@@ -227,7 +227,7 @@ class ThermalWalkers{
 						reweight(MPS_index, first_weight + second_weight);
 						to_remove.insert(to_remove.begin(), index_to_combine);
 					}
-					std::cerr << "Combining walkers #" << index_to_combine << "(weight " << first_weight << ") and #" << MPS_index << "(weight " << second_weight << "), choosing " << chosen_index << std::endl;
+					//std::cerr << "Combining walkers #" << index_to_combine << "(weight " << first_weight << ") and #" << MPS_index << "(weight " << second_weight << "), choosing " << chosen_index << std::endl;
 					index_to_combine = -1;
 				}
 				else{
@@ -267,7 +267,7 @@ class ThermalWalkers{
 					reweight(MPS_index, old_weight/2);
 					walkers.push_back(itensor::MPS(walkers[MPS_index]));
 					weights.push_back(old_weight/2);
-					std::cerr << "Split walker #" << MPS_index << " with original weight " << old_weight << std::endl;
+					//std::cerr << "Split walker #" << MPS_index << " with original weight " << old_weight << std::endl;
 				}
 			}
 		}
