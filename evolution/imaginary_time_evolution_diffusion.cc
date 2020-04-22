@@ -130,7 +130,7 @@ int main(int argc, char *argv[]){
 		entanglement_entropies.push_back(tw.average_entanglement_entropy(num_sites/2));
 		bds.push_back(tw.get_bds());
 		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has average weighted energy " << energy << " among " << weights.size() << " walkers (" << difftime(time(NULL), start_time) << "s)" << std::endl;
-		std::cerr << "Native energy of first state: " << itensor::inner(tw.walkers[0], H, tw.walkers[0])/(tw.weights[0]*tw.weights[0]) << std::endl;
+		std::cerr << "Native energy of first state: " << itensor::inner(tw.walkers[0], H, tw.walkers[0])/(num_sites*tw.weights[0]*tw.weights[0]) << std::endl;
 		start_time = time(NULL);
 		
 		//out_file << energy << "|" << bond_dimension << "|" << avg_Sz_val << endl;
