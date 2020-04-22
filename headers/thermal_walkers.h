@@ -192,7 +192,7 @@ class ThermalWalkers{
 			std::cerr << std::endl;*/
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
-					//std::cerr << "Truncating MPSs..." << std::endl;
+					std::cerr << "Truncating MPS #" << MPS_index << "..." << std::endl;
 					truncate_single_MPS(MPS_index);
 					reweight(MPS_index);
 				}
@@ -338,7 +338,7 @@ class ThermalWalkers{
 			auto U_original_index = itensor::commonIndex(U,S);
 			std::vector<double> singular_values = abs_diagonal_elems(S);
 			if(verbose){
-				std::cerr << "Pre-truncation singular values: ";
+				std::cerr << "  Pre-truncation singular values: ";
 				for(double sv : singular_values){
 					std::cerr << sv << " ";
 				}
@@ -362,7 +362,7 @@ class ThermalWalkers{
 					}
 				}
 				if(verbose){
-					std::cerr << "Randomly selected indices: ";
+					std::cerr << "   Randomly selected indices: ";
 					for(int rindex = 0; rindex < original_indices.size(); rindex ++){
 						std::cerr << original_indices[rindex] << "(" << truncated_repeats[rindex] << " times)| ";
 					}
@@ -375,7 +375,7 @@ class ThermalWalkers{
 				singular_value_weight = sum(singular_values)/truncated_bd;
 			}
 			if(verbose){
-				std::cerr << "New set weight: " << singular_value_weight << std::endl;
+				std::cerr << "   New set weight: " << singular_value_weight << std::endl;
 			}
 			//std::cerr << "Truncating after selecting singular values..." << std::endl;
 			truncate_based_on_selection(truncated_repeats, original_indices, U, S, V, original_bd, site, MPS_index, singular_value_weight);
@@ -383,6 +383,9 @@ class ThermalWalkers{
 		void truncate_single_MPS(int MPS_index){
 			int num_sites = itensor::length(walkers[MPS_index]);
 			for(int site = 1; site < num_sites; site++){
+				if(verbose){
+					std::cerr << " On site " << site << "..." << std::endl;
+				}
 				truncate_single_site_single_MPS(site, MPS_index);
 			}
 		}
@@ -451,7 +454,7 @@ class ThermalWalkers{
 			}
 			std::vector<double> new_singular_values = abs_diagonal_elems(S);
 			if(verbose){
-				std::cerr << "Post-truncation singular values: ";
+				std::cerr << "  Post-truncation singular values: ";
 				for(double sv : new_singular_values){
 					std::cerr << sv << " ";
 				}
