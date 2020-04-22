@@ -192,9 +192,17 @@ class ThermalWalkers{
 			std::cerr << std::endl;*/
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
-					std::cerr << "Truncating MPS #" << MPS_index << "..." << std::endl;
+					itensor::MPS original(walkers[MPS_index]);
+					double old_weight = weights[MPS_index];
+					if(verbose){
+						std::cerr << "Truncating MPS #" << MPS_index << "..." << std::endl;
+					}
+					
 					truncate_single_MPS(MPS_index);
 					reweight(MPS_index);
+					if(verbose){
+						std::cerr << "FIDELITY WITH ORIGINAL: " << itensor::inner(original, walkers[MPS_index])/(old_weight*weights[MPS_index]) << std::endl;
+					}
 				}
 			}
 			/*std::cerr << "      New walker weights: ";
