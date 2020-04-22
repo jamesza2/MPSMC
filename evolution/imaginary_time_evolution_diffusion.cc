@@ -60,7 +60,7 @@ int main(int argc, char *argv[]){
 	std::string trial_wavefunction_file_name = input.testString("trial_wavefunction_file", "");
 	std::string log_file_name = input.testString("log_file", "");
 	std::streambuf *coutbuf = std::cout.rdbuf();
-	ofstream log_file(log_file_name);
+	std::ofstream log_file(log_file_name);
 	if(log_file_name != ""){
 		std::cout.rdbuf(log_file.rdbuf());
 	}
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]){
 
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
 	tw.set_kept_singular_values(kept_singular_values);
-	tw.verbose = true;
+	tw.verbose = false;
 	
 	if(trial_wavefunction_file_name != ""){
 		tw.set_trial_wavefunction(trial);
@@ -130,6 +130,7 @@ int main(int argc, char *argv[]){
 		entanglement_entropies.push_back(tw.average_entanglement_entropy(num_sites/2));
 		bds.push_back(tw.get_bds());
 		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has average weighted energy " << energy << " among " << weights.size() << " walkers (" << difftime(time(NULL), start_time) << "s)" << std::endl;
+		std::cerr << "Native energy of first state: " << itensor::inner(tw.walkers[0], H, tw.walkers[0])/(tw.weights[0]*tw.weights[0]) << std::endl;
 		start_time = time(NULL);
 		
 		//out_file << energy << "|" << bond_dimension << "|" << avg_Sz_val << endl;
