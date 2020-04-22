@@ -58,6 +58,12 @@ int main(int argc, char *argv[]){
 	std::string out_file_name = input.GetVariable("out_file");
 	int kept_singular_values = input.testInteger("kept_singular_values", 0);
 	std::string trial_wavefunction_file_name = input.testString("trial_wavefunction_file", "");
+	std::string log_file_name = input.testString("log_file", "");
+	std::streambuf *coutbuf = std::cout.rdbuf();
+	ofstream log_file(log_file_name);
+	if(log_file_name != ""){
+		std::cout.rdbuf(log_file.rdbuf());
+	}
 	
 
 	std::cerr << "Read input files" << endl;
@@ -128,6 +134,11 @@ int main(int argc, char *argv[]){
 		
 		//out_file << energy << "|" << bond_dimension << "|" << avg_Sz_val << endl;
 	}
+
+	if(log_file_name != ""){
+		std::cout.rdbuf(coutbuf);
+	}
+	log_file.close();
 	out_file << "#NUM_EXPECTED_WALKERS:\n" << num_walkers;
 	out_file << "\n#NUM_ITERATIONS:\n" << num_iterations;
 	out_file << "\n#TAU:\n" << tau;
