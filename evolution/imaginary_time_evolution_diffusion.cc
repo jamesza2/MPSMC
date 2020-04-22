@@ -82,6 +82,7 @@ int main(int argc, char *argv[]){
 
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
 	tw.set_kept_singular_values(kept_singular_values);
+	tw.verbose = true;
 	
 	if(trial_wavefunction_file_name != ""){
 		tw.set_trial_wavefunction(trial);

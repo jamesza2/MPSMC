@@ -25,6 +25,7 @@ class ThermalWalkers{
 		std::mt19937 generator;
 		std::uniform_real_distribution<double> distribution;
 		int kept_singular_values;
+		bool verbose;
 
 		ThermalWalkers(itensor::SiteSet &sites, 
 			itensor::MPO &itev_input, 
@@ -50,6 +51,7 @@ class ThermalWalkers{
 			num_walkers = num_walkers_input;
 			num_max_walkers = num_max_walkers_input;
 			kept_singular_values = 0;
+			verbose = false;
 		}
 
 		void set_trial_wavefunction(itensor::MPS &new_trial_wavefunction){
@@ -335,6 +337,14 @@ class ThermalWalkers{
 			auto V_original_index = itensor::commonIndex(S,V);
 			auto U_original_index = itensor::commonIndex(U,S);
 			std::vector<double> singular_values = abs_diagonal_elems(S);
+			if(verbose){
+				std::cerr << "Pre-truncation singular values: ";
+				for(double sv : singular_values){
+					std::cerr << sv << " ";
+				}
+				std::cerr << std::endl;
+			}
+			
 			int original_bd = singular_values.size();
 			std::vector<int> repeats(original_bd,0);
 			vector<int> truncated_repeats;
@@ -351,10 +361,21 @@ class ThermalWalkers{
 						original_indices.push_back(i+1);
 					}
 				}
+				if(verbose){
+					std::cerr << "Randomly selected indices: ";
+					for(int rindex = 0; rindex < original_indices.size(); rindex ++){
+						std::cerr << original_indices[rindex] << "(" << truncated_repeats[rindex] << " times)| ";
+					}
+					std::cerr << std::endl;
+				}
+				
 			}
 			double singular_value_weight = 1;
 			if(truncated_bd != 0){
 				singular_value_weight = sum(singular_values)/truncated_bd;
+			}
+			if(verbose){
+				std::cerr << "New set weight: " << singular_value_weight << std::endl;
 			}
 			//std::cerr << "Truncating after selecting singular values..." << std::endl;
 			truncate_based_on_selection(truncated_repeats, original_indices, U, S, V, original_bd, site, MPS_index, singular_value_weight);
@@ -428,6 +449,15 @@ class ThermalWalkers{
 			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
 				S.set(T_truncated_index = repeat_index + kept_singular_values, T_truncated_index_primed = repeat_index + kept_singular_values, singular_value_weight*truncated_repeats[repeat_index-1]);
 			}
+			std::vector<double> new_singular_values = abs_diagonal_elems(S);
+			if(verbose){
+				std::cerr << "Post-truncation singular values: ";
+				for(double sv : new_singular_values){
+					std::cerr << sv << " ";
+				}
+				std::cerr << std::endl;
+			}
+
 			//Collect new U into current matrix, S*V into the forward matrix
 			psi.ref(site) = U;
 			psi.ref(site+1) = S*V;
