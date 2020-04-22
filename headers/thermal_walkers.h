@@ -172,6 +172,7 @@ class ThermalWalkers{
 		//Iterate floor(beta/tau) times, automatically truncating when it gets beyond certain bond dimensions
 		void iterate(double beta){
 			for(double current_beta = tau; current_beta <= beta; current_beta += tau){
+
 				apply_MPO_no_truncation();
 				process();
 			}
@@ -201,7 +202,7 @@ class ThermalWalkers{
 					truncate_single_MPS(MPS_index);
 					reweight(MPS_index);
 					if(verbose){
-						std::cerr << "FIDELITY WITH ORIGINAL: " << itensor::inner(original, walkers[MPS_index])/(old_weight*weights[MPS_index]) << std::endl;
+						std::cerr << "FIDELITY AFTER TRUNCATION: " << itensor::inner(original, walkers[MPS_index])/(old_weight*weights[MPS_index]) << std::endl;
 					}
 				}
 			}
@@ -732,6 +733,8 @@ class ThermalWalkers{
 		//Automatically deprimes site indices
 		void apply_MPO_no_truncation(){
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
+				itensor::MPS old_psi(walkers[MPS_index]);
+				double old_weight = weights[MPS_index];
 				itensor::MPS & psi = walkers.at(MPS_index);
 				int num_sites = itensor::length(psi);
 
@@ -768,6 +771,9 @@ class ThermalWalkers{
 				psi.replaceSiteInds(itensor::noPrime(itensor::siteInds(psi)));
 				psi *= std::exp(trial_energy*tau);
 				weights[MPS_index] = std::sqrt(std::abs(itensor::innerC(psi, psi)));
+				if(verbose){
+					std::cerr << "FIDELITY AFTER ITE: " << itensor::inner(old_psi, walkers[MPS_index])/(old_weight*weights[MPS_index]) << std::endl;
+				}
 			}
 			
 		}
