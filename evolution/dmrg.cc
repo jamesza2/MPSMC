@@ -104,13 +104,14 @@ int main(int argc, char *argv[]){
 	double gs_energy = itensor::inner(psi, H, psi);
 	vector<double> taus;
 	vector<double> errors;
+	std::cerr << "Ground state has energy " << gs_energy << " and squared norm " << itensor::inner(psi, psi) << std::endl;
 	for(int iteration = 0; iteration < num_iterations; iteration ++){
 		double tau_to_graph = (static_cast<double>(iteration)/num_iterations);
 		tau_to_graph *= tau_to_graph;
 		itensor::MPO itev = itensor::toExpH(ampo, tau_to_graph);
 		itensor::MPS new_psi(psi);
 		apply_MPO_no_truncation(itev, new_psi);
-		double error = itensor::inner(psi, new_psi) - std::exp(-tau_to_graph*gs_energy)*itensor::inner(psi, psi);
+		double error = (itensor::inner(psi, new_psi) - std::exp(-tau_to_graph*gs_energy)*itensor::inner(psi, psi))/num_sites;
 		std::cerr << "Tau = " << tau_to_graph << " has error " << error << std::endl;
 		taus.push_back(tau_to_graph);
 		errors.push_back(error);
