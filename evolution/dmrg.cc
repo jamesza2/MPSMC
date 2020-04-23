@@ -112,7 +112,7 @@ int main(int argc, char *argv[]){
 		apply_MPO_no_truncation(itev, new_psi);
 		double error = itensor::inner(psi, new_psi) - std::exp(-tau_to_graph*gs_energy)*itensor::inner(psi, psi);
 		std::cerr << "Tau = " << tau_to_graph << " has error " << error << std::endl;
-		taus.push_back(tau);
+		taus.push_back(tau_to_graph);
 		errors.push_back(error);
 	}
 
