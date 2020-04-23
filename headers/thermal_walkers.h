@@ -36,6 +36,7 @@ class ThermalWalkers{
 			int num_max_walkers_input)
 		{
 			auto psi = itensor::randomMPS(sites);
+			psi /= std::sqrt(itensor::inner(psi, psi));
 			walkers.clear();
 			walkers.push_back(itensor::MPS(psi));
 			weights.clear();

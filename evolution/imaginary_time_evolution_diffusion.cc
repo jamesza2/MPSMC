@@ -59,10 +59,10 @@ int main(int argc, char *argv[]){
 	int kept_singular_values = input.testInteger("kept_singular_values", 0);
 	std::string trial_wavefunction_file_name = input.testString("trial_wavefunction_file", "");
 	std::string log_file_name = input.testString("log_file", "");
-	std::streambuf *coutbuf = std::cout.rdbuf();
+	std::streambuf *coutbuf = std::cerr.rdbuf();
 	std::ofstream log_file(log_file_name);
 	if(log_file_name != ""){
-		std::cout.rdbuf(log_file.rdbuf());
+		std::cerr.rdbuf(log_file.rdbuf());
 	}
 	
 
@@ -137,7 +137,7 @@ int main(int argc, char *argv[]){
 	}
 
 	if(log_file_name != ""){
-		std::cout.rdbuf(coutbuf);
+		std::cerr.rdbuf(coutbuf);
 	}
 	log_file.close();
 	out_file << "#NUM_EXPECTED_WALKERS:\n" << num_walkers;
