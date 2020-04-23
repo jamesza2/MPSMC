@@ -12,27 +12,27 @@ void apply_MPO_no_truncation(itensor::MPO &itev, itensor::MPS &psi){
 	std::vector<itensor::Index> new_link_indices;
 	new_link_indices.reserve(num_sites);
 
-	auto MPO_first_link = itensor::rightLinkIndex(*itev, 1);
+	auto MPO_first_link = itensor::rightLinkIndex(itev, 1);
 	auto MPS_first_link = itensor::rightLinkIndex(psi, 1);
 	auto [first_combiner, first_link_index] = itensor::combiner(itensor::IndexSet(MPO_first_link, MPS_first_link),{"Tags=","Link,l=1"});
 
 	std::vector<itensor::ITensor> new_MPS;
 	
-	new_MPS.push_back(psi(1)*(*itev)(1)*first_combiner);
+	new_MPS.push_back(psi(1)*(itev)(1)*first_combiner);
 	new_link_indices.push_back(first_link_index);
 
 	for(int i = 2; i <= num_sites; i++){
-		auto MPO_left_link = itensor::leftLinkIndex(*itev, i);
+		auto MPO_left_link = itensor::leftLinkIndex(itev, i);
 		auto MPS_left_link = itensor::leftLinkIndex(psi, i);
 		auto [left_combiner, left_combined_index] = itensor::combiner(MPO_left_link, MPS_left_link);
 		if(i == num_sites){
-			new_MPS.push_back(psi(num_sites)*(*itev)(num_sites)*left_combiner*itensor::delta(left_combined_index, new_link_indices[num_sites-2]));
+			new_MPS.push_back(psi(num_sites)*(itev)(num_sites)*left_combiner*itensor::delta(left_combined_index, new_link_indices[num_sites-2]));
 			break;
 		}
-		auto MPO_right_link = itensor::rightLinkIndex(*itev, i);
+		auto MPO_right_link = itensor::rightLinkIndex(itev, i);
 		auto MPS_right_link = itensor::rightLinkIndex(psi, i);
 		auto [right_combiner, right_combined_index] = itensor::combiner(itensor::IndexSet(MPO_right_link, MPS_right_link), {"Tags=","Link,l="+std::to_string(i)});
-		new_MPS.push_back(psi(i)*(*itev)(i)*left_combiner*right_combiner*itensor::delta(left_combined_index, new_link_indices[i-2]));
+		new_MPS.push_back(psi(i)*(itev)(i)*left_combiner*right_combiner*itensor::delta(left_combined_index, new_link_indices[i-2]));
 		new_link_indices.push_back(right_combined_index);
 	}
 	for(int i = 1; i <= num_sites; i++){
