@@ -101,10 +101,10 @@ int main(int argc, char *argv[]){
 		bond_dimensions.push_back(itensor::maxLinkDim(new_psi));
 		double fidelity = itensor::inner(trial_wavefunction, new_psi);
 		fidelities.push_back(fidelity);
-		double me = itensor::inner(trial_wavefunction, H, new_psi);
+		double me = itensor::inner(trial_wavefunction, H, new_psi)/num_sites;
 		mes.push_back(me);
 		psi = new_psi;
-		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has energy " << energy << " and estimated energy " << fidelity/me <<  std::endl;
+		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has energy " << energy << " and estimated energy " << me/fidelity <<  std::endl;
 	}
 	itensor::writeToFile(mps_file_name, psi);
 
