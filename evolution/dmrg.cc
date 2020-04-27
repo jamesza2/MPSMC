@@ -74,6 +74,8 @@ int main(int argc, char *argv[]){
 
 	itensor::SiteSet sites = itensor::SpinHalf(num_sites, {"ConserveQNs=", false});
 
+	
+
 	OperatorMaker opm(sites);
 	auto ampo = opm.XXZHamiltonian(Jz, h);
 	itensor::MPO H = itensor::toMPO(ampo);
@@ -82,20 +84,27 @@ int main(int argc, char *argv[]){
 	itensor::MPO avg_Sz = itensor::toMPO(avg_Sz_ampo);
 
 	auto psi = itensor::randomMPS(sites);
+	itensor::MPS trial_wavefunction(psi);
 	auto sweeps = itensor::Sweeps(1);
 	sweeps.maxdim() = max_bd;
 
 	std::ofstream out_file(out_file_name);
 	vector<double> energies;
 	vector<double> bond_dimensions;
+	vector<double> fidelities;
+	vector<double> mes;
 
 	for(int iteration = 0; iteration < num_iterations; iteration++){
 		auto [energy, new_psi] = itensor::dmrg(H, psi, sweeps, {"Silent", true});
 		energy = energy/num_sites;
 		energies.push_back(energy);
 		bond_dimensions.push_back(itensor::maxLinkDim(new_psi));
+		double fidelity = itensor::inner(trial_wavefunction, new_psi);
+		fidelities.push_back(fidelity);
+		double me = itensor::inner(trial_wavefunction, H, new_psi);
+		mes.push_back(me);
 		psi = new_psi;
-		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has energy " << energy << std::endl;
+		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has energy " << energy << " and estimated energy " << fidelity/me <<  std::endl;
 	}
 	itensor::writeToFile(mps_file_name, psi);
 
@@ -125,6 +134,14 @@ int main(int argc, char *argv[]){
 	out_file << "\n#ENERGIES:";
 	for(double energy:energies){
 		out_file << "\n" << energy;
+	}
+	out_file << "\n#FIDELITY:";
+	for(double fidelity:fidelities){
+		out_file << "\n" << fidelity;
+	}
+	out_file << "\n#MATRIX_ELEMENTS:";
+	for(double me:mes){
+		out_file << "\n" << me;
 	}
 	out_file << "\n#BOND_DIMENSIONS:";
 	for(double bd:bond_dimensions){
