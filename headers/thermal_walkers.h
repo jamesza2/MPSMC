@@ -303,7 +303,7 @@ class ThermalWalkers{
 
 		void recalculate_trial_energy(double expected_energy = 0){
 			double total_weight = sum(weights);
-			double bounded_energy = std::min(std::max(expected_energy, -1),0);
+			double bounded_energy = std::min(std::max(expected_energy, -1.),0.);
 			trial_energy = std::log(static_cast<double>(num_walkers)/total_weight)/tau + bounded_energy;
 		}
 
