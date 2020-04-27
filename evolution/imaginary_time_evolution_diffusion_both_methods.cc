@@ -157,7 +157,7 @@ int main(int argc, char *argv[]){
 		vector<double> energies_2 = tw2.expectation_values(H);
 		vector<double> weights_2 = tw2.get_weights();
 		vector<double> overlaps_2 = tw2.weighted_overlaps(tw2.trial_wavefunction);
-		tw2.recalculate_trial_energy(energy_2);
+		//tw2.recalculate_trial_energy(energy_2);
 		walker_energies_2.push_back(energies_2);
 		walker_weights_2.push_back(weights_2);
 		walker_overlaps_2.push_back(overlaps_2);

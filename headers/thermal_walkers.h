@@ -26,6 +26,7 @@ class ThermalWalkers{
 		std::uniform_real_distribution<double> distribution;
 		int kept_singular_values;
 		bool verbose;
+		bool fixed_node; //If true, extincts any walker whose overlap with the trial wavefunction flips sign
 
 		ThermalWalkers(itensor::SiteSet &sites, 
 			itensor::MPO &itev_input, 
@@ -53,6 +54,7 @@ class ThermalWalkers{
 			num_max_walkers = num_max_walkers_input;
 			kept_singular_values = 0;
 			verbose = false;
+			fixed_node = false;
 		}
 
 		void set_trial_wavefunction(itensor::MPS &new_trial_wavefunction){
@@ -173,9 +175,11 @@ class ThermalWalkers{
 		//Iterate floor(beta/tau) times, automatically truncating when it gets beyond certain bond dimensions
 		void iterate(double beta){
 			for(double current_beta = tau; current_beta <= beta; current_beta += tau){
-
+				double old_weight_sum = norm(weights);
 				apply_MPO_no_truncation();
+				double new_weight_sum = norm(weights);
 				process();
+				recalculate_trial_energy(std::log(old_weight_sum/new_weight_sum));
 			}
 		}
 
@@ -212,7 +216,7 @@ class ThermalWalkers{
 				std::cerr << weight << " ";
 			}
 			std::cerr << std::endl;*/
-			recalculate_trial_energy();
+			//recalculate_trial_energy();
 		}
 
 		void reweight(int MPS_index, double new_weight = -1){
@@ -299,7 +303,8 @@ class ThermalWalkers{
 
 		void recalculate_trial_energy(double expected_energy = 0){
 			double total_weight = sum(weights);
-			trial_energy = std::log(static_cast<double>(num_walkers)/total_weight)/tau + expected_energy;
+			double bounded_energy = std::min(std::max(expected_energy, -1),0);
+			trial_energy = std::log(static_cast<double>(num_walkers)/total_weight)/tau + bounded_energy;
 		}
 
 		void iterate_single(){
