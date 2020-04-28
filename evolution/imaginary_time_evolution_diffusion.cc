@@ -122,7 +122,7 @@ int main(int argc, char *argv[]){
 		else{
 			overlaps = tw.weighted_overlaps(tw.trial_wavefunction);
 		}*/
-		tw.recalculate_trial_energy(energy);
+		//tw.recalculate_trial_energy(energy);
 		walker_energies.push_back(energies);
 		walker_weights.push_back(weights);
 		walker_overlaps.push_back(overlaps);
