@@ -217,9 +217,9 @@ class ThermalWalkers{
 			//If the overlap with the trial wavefunction flips sign, kill it
 			//But if all overlaps flip sign, keep them all
 			if(fixed_node){
-				vector<double> overlaps = overlaps(trial_wavefunction);
+				vector<double> ovs = overlaps(trial_wavefunction);
 				bool all_overlaps_flip_sign = true;
-				for(double ov : overlaps){
+				for(double ov : ovs){
 					bool overlap_positive = (ov > 0);
 					if(overlap_positive == original_overlap_positive){
 						all_overlaps_flip_sign = false;
@@ -231,7 +231,7 @@ class ThermalWalkers{
 				}
 				else{
 					for(int MPS_index = walkers.size()-1; MPS_index >= 0; MPS_index --){
-						double ov = overlaps[MPS_index];
+						double ov = ovs[MPS_index];
 						bool overlap_positive = (ov > 0);
 						if(overlap_positive != original_overlap_positive){
 							walkers.erase(walkers.begin() + MPS_index);
