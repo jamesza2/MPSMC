@@ -60,6 +60,7 @@ int main(int argc, char *argv[]){
 	std::string trial_wavefunction_file_name = input.testString("trial_wavefunction_file", "");
 	std::string log_file_name = input.testString("log_file", "");
 	bool verbose = input.testBool("verbose", false);
+	bool fixed_node = input.testBool("fixed_node", false);
 	std::streambuf *coutbuf = std::cerr.rdbuf();
 	std::ofstream log_file(log_file_name);
 	if(log_file_name != ""){
@@ -89,6 +90,7 @@ int main(int argc, char *argv[]){
 
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
 	tw.set_kept_singular_values(kept_singular_values);
+	tw.fixed_node = fixed_node;
 	tw.verbose = verbose;
 	
 	if(trial_wavefunction_file_name != ""){

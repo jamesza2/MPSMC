@@ -27,6 +27,7 @@ class ThermalWalkers{
 		int kept_singular_values;
 		bool verbose;
 		bool fixed_node; //If true, extincts any walker whose overlap with the trial wavefunction flips sign
+		bool original_overlap_positive;
 
 		ThermalWalkers(itensor::SiteSet &sites, 
 			itensor::MPO &itev_input, 
@@ -55,6 +56,7 @@ class ThermalWalkers{
 			kept_singular_values = 0;
 			verbose = false;
 			fixed_node = false;
+			original_overlap_positive = (itensor::inner(psi, trial_wavefunction) > 0);
 		}
 
 		void set_trial_wavefunction(itensor::MPS &new_trial_wavefunction){
@@ -210,6 +212,35 @@ class ThermalWalkers{
 						std::cerr << "FIDELITY AFTER TRUNCATION: " << itensor::inner(original, walkers[MPS_index])/(old_weight*weights[MPS_index]) << std::endl;
 					}
 				}
+			}
+			//For each walker:
+			//If the overlap with the trial wavefunction flips sign, kill it
+			//But if all overlaps flip sign, keep them all
+			if(fixed_node){
+				vector<double> overlaps = overlaps(trial_wavefunction);
+				bool all_overlaps_flip_sign = true;
+				for(double ov : overlaps){
+					bool overlap_positive = (ov > 0);
+					if(overlap_positive == original_overlap_positive){
+						all_overlaps_flip_sign = false;
+					}
+				}
+				if(all_overlaps_flip_sign){
+					original_overlap_positive = !original_overlap_positive;
+					std::cerr << "WARNING: ALL OVERLAPS FLIPPED SIGN" << std::endl;
+				}
+				else{
+					for(int MPS_index = walkers.size()-1; MPS_index >= 0; MPS_index --){
+						double ov = overlaps[MPS_index];
+						bool overlap_positive = (ov > 0);
+						if(overlap_positive != original_overlap_positive){
+							walkers.erase(walkers.begin() + MPS_index);
+							weights.erase(weights.begin() + MPS_index);
+							std::cerr << "  ERASING WALKER #" << MPS_index << " DUE TO OVERLAP " << ov << " BEING THE WRONG SIGN" << std::endl;
+						}
+					}
+				}
+
 			}
 			/*std::cerr << "      New walker weights: ";
 			for(double weight : weights){
