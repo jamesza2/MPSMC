@@ -110,9 +110,9 @@ int main(int argc, char *argv[]){
 
 	tw.set_fixed_node_wavefunction(tw.trial_wavefunction);
 
-	if(fixed_node_wavefunction_file != ""){
+	if(fn_wavefunction_file != ""){
 		itensor::MPS fn(sites);
-		read_from_file(sites, fixed_node_wavefunction_file fn);
+		read_from_file(sites, fn_wavefunction_file fn);
 		tw.set_fixed_node_wavefunction(fn);
 	}
 
