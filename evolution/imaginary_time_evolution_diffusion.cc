@@ -94,6 +94,7 @@ int main(int argc, char *argv[]){
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
 	itensor::MPS random_trial = randomMPS::randomMPS(sites, trial_bd, trial_correlation_length);
 	tw.set_trial_wavefunction(random_trial);
+	tw.set_MPS(random_trial, 0);
 	tw.set_kept_singular_values(kept_singular_values);
 	tw.fixed_node = fixed_node;
 	tw.verbose = verbose;
