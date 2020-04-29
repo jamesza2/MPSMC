@@ -15,6 +15,7 @@ class ThermalWalkers{
 		vector<double> weights;
 		itensor::MPO *itev;
 		itensor::MPS trial_wavefunction;
+		itensor::MPS fixed_node_wavefunction;
 		double tau; //Iterate it N times to time evolve by beta = N*tau
 		int max_bd;
 		int truncated_bd;
@@ -44,6 +45,7 @@ class ThermalWalkers{
 			weights.clear();
 			weights.push_back(std::sqrt(std::abs(itensor::innerC(psi, psi))));
 			trial_wavefunction = itensor::MPS(psi);
+			fixed_node_wavefunction = itensor::MPS(trial_wavefunction);
 			itev = &itev_input;
 			tau = tau_input;
 			max_bd = max_bond_dimension_input;
@@ -61,6 +63,10 @@ class ThermalWalkers{
 
 		void set_trial_wavefunction(itensor::MPS &new_trial_wavefunction){
 			trial_wavefunction = itensor::MPS(new_trial_wavefunction);
+		}
+
+		void set_fixed_node_wavefunction(itensor::MPS &new_fixed_node_wavefunction){
+			fixed_node_wavefunction = itensor::MPS(new_fixed_node_wavefunction);
 		}
 
 		void set_kept_singular_values(int kept_singular_values_input){
@@ -217,7 +223,7 @@ class ThermalWalkers{
 			//If the overlap with the trial wavefunction flips sign, kill it
 			//But if all overlaps flip sign, keep them all
 			if(fixed_node){
-				vector<double> ovs = overlaps(trial_wavefunction);
+				vector<double> ovs = overlaps(fixed_node_wavefunction);
 				bool all_overlaps_flip_sign = true;
 				for(double ov : ovs){
 					bool overlap_positive = (ov > 0);

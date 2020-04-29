@@ -62,8 +62,9 @@ int main(int argc, char *argv[]){
 	std::string log_file_name = input.testString("log_file", "");
 	bool verbose = input.testBool("verbose", false);
 	bool fixed_node = input.testBool("fixed_node", false);
-	int trial_bd = input.testInteger("trial_bond_dimension", 50);
+	int trial_bd = input.testInteger("trial_bond_dimension", 0);
 	double trial_correlation_length = input.testDouble("trial_correlation_length", 0.5);
+	std::string fn_wavefunction_file = input.testString("fixed_node_wavefunction_file", "");
 	std::streambuf *coutbuf = std::cerr.rdbuf();
 	std::ofstream log_file(log_file_name);
 	if(log_file_name != ""){
@@ -91,16 +92,28 @@ int main(int argc, char *argv[]){
 	itensor::MPO avg_Sz = itensor::toMPO(avg_Sz_ampo);
 
 
+
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
-	itensor::MPS random_trial = randomMPS::randomMPS(sites, trial_bd, trial_correlation_length);
-	tw.set_trial_wavefunction(random_trial);
-	tw.set_MPS(random_trial, 0);
+	if(trial_bd != 0){
+		itensor::MPS random_trial = randomMPS::randomMPS(sites, trial_bd, trial_correlation_length);
+		random_trial.normalize();
+		tw.set_trial_wavefunction(random_trial);
+		tw.set_MPS(random_trial, 0);
+	}
 	tw.set_kept_singular_values(kept_singular_values);
 	tw.fixed_node = fixed_node;
 	tw.verbose = verbose;
 	
 	if(trial_wavefunction_file_name != ""){
 		tw.set_trial_wavefunction(trial);
+	}
+
+	tw.set_fixed_node_wavefunction(tw.trial_wavefunction);
+
+	if(fixed_node_wavefunction_file != ""){
+		itensor::MPS fn(sites);
+		read_from_file(sites, fixed_node_wavefunction_file fn);
+		tw.set_fixed_node_wavefunction(fn);
 	}
 
 	std::ofstream out_file(out_file_name);
