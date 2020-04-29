@@ -2,6 +2,7 @@
 #include "../headers/input.h"
 #include "../headers/operators.h"
 #include "../headers/thermal_walkers.h"
+#include "../headers/random_mps.h"
 #include <random>
 #include <ctime>
 #include <cmath>
@@ -61,6 +62,8 @@ int main(int argc, char *argv[]){
 	std::string log_file_name = input.testString("log_file", "");
 	bool verbose = input.testBool("verbose", false);
 	bool fixed_node = input.testBool("fixed_node", false);
+	int trial_bd = input.testInt("trial_bond_dimension", 50);
+	double trial_correlation_length = input.testDouble("trial_correlation_length", 0.5);
 	std::streambuf *coutbuf = std::cerr.rdbuf();
 	std::ofstream log_file(log_file_name);
 	if(log_file_name != ""){
@@ -89,6 +92,7 @@ int main(int argc, char *argv[]){
 
 
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
+	tw.set_trial_wavefunction(randomMPS::randomMPS(sites, trial_bd, trial_correlation_length));
 	tw.set_kept_singular_values(kept_singular_values);
 	tw.fixed_node = fixed_node;
 	tw.verbose = verbose;
