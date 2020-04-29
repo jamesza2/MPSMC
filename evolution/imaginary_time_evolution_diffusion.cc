@@ -62,7 +62,7 @@ int main(int argc, char *argv[]){
 	std::string log_file_name = input.testString("log_file", "");
 	bool verbose = input.testBool("verbose", false);
 	bool fixed_node = input.testBool("fixed_node", false);
-	int trial_bd = input.testInt("trial_bond_dimension", 50);
+	int trial_bd = input.testInteger("trial_bond_dimension", 50);
 	double trial_correlation_length = input.testDouble("trial_correlation_length", 0.5);
 	std::streambuf *coutbuf = std::cerr.rdbuf();
 	std::ofstream log_file(log_file_name);
