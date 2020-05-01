@@ -92,10 +92,12 @@ int main(int argc, char *argv[]){
 	auto avg_Sz_ampo = opm.AverageSz();
 	itensor::MPO avg_Sz = itensor::toMPO(avg_Sz_ampo);
 
+	std::cerr << "Creating thermalwalkers object..." << std::endl;
 
 
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
 	if(trial_bd != 0){
+		std::cerr << "Creating random trial wavefunction..." << std::endl;
 		itensor::MPS random_trial = randomMPS::randomMPS(sites, trial_bd, trial_correlation_length);
 		random_trial.normalize();
 		tw.set_trial_wavefunction(random_trial);
@@ -106,12 +108,15 @@ int main(int argc, char *argv[]){
 	tw.verbose = verbose;
 	
 	if(trial_wavefunction_file_name != ""){
+		std::cerr << "Setting trial wavefunction from file..." << std::endl;
 		tw.set_trial_wavefunction(trial);
 	}
 
+	std::cerr << "Setting fixed node wavefunction to trial wavefunction..." << std::endl;
 	tw.set_fixed_node_wavefunction(tw.trial_wavefunction);
 
 	if(fn_wavefunction_file != ""){
+		std::cerr << "Setting fixed node wavefunction from file..." << std::endl;
 		itensor::MPS fn(sites);
 		read_from_file(sites, fn_wavefunction_file, fn);
 		tw.set_fixed_node_wavefunction(fn);
