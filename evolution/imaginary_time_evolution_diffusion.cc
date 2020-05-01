@@ -119,9 +119,13 @@ int main(int argc, char *argv[]){
 
 	if(starting_wavefunction_file != ""){
 		itensor::MPS sw(sites);
+		std::cerr << "Reading starting wavefunction from file" << std::endl;
 		read_from_file(sites, starting_wavefunction_file, sw);
+		std::cerr << "Setting starting walker to starting wavefunction..." << std::endl;
 		tw.set_MPS(sw, 0);
+		std::cerr << "Starting wavefunction has norm " << itensor::norm(tw.walkers[0]) << " and trial overlap " << itensor::inner(tw.walkers[0], tw.trial_wavefunction) << std::endl;
 	}
+	std::cerr << "Starting ite..." << std::endl;
 
 	std::ofstream out_file(out_file_name);
 	//out_file << "Energy|Bond Dimension|Max Sz" << endl;
