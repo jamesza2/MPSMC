@@ -65,6 +65,7 @@ int main(int argc, char *argv[]){
 	int trial_bd = input.testInteger("trial_bond_dimension", 0);
 	double trial_correlation_length = input.testDouble("trial_correlation_length", 0.5);
 	std::string fn_wavefunction_file = input.testString("fixed_node_wavefunction_file", "");
+	std::string starting_wavefunction_file = input.testString("starting_node_wavefunction_file", "");
 	std::streambuf *coutbuf = std::cerr.rdbuf();
 	std::ofstream log_file(log_file_name);
 	if(log_file_name != ""){
@@ -114,6 +115,12 @@ int main(int argc, char *argv[]){
 		itensor::MPS fn(sites);
 		read_from_file(sites, fn_wavefunction_file, fn);
 		tw.set_fixed_node_wavefunction(fn);
+	}
+
+	if(starting_wavefunction_file != ""){
+		itensor::MPS sw(sites);
+		read_from_file(sites, starting_wavefunction_file, sw);
+		tw.set_MPS(sw, 0);
 	}
 
 	std::ofstream out_file(out_file_name);
