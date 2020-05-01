@@ -117,6 +117,7 @@ int main(int argc, char *argv[]){
 		tw.set_fixed_node_wavefunction(fn);
 	}
 
+	std::cerr<< "Creating starting wavefunction..." << std::endl;
 	if(starting_wavefunction_file != ""){
 		itensor::MPS sw(sites);
 		std::cerr << "Reading starting wavefunction from file" << std::endl;
