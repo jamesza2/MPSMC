@@ -99,12 +99,10 @@ int main(int argc, char *argv[]){
 	auto avg_Sz_ampo = opm.AverageSz();
 	itensor::MPO avg_Sz = itensor::toMPO(avg_Sz_ampo);
 
-	std::cout << "Creating thermalwalkers object..." << std::endl;
 
 
 	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
 	if(trial_bd != 0){
-		std::cout << "Creating random trial wavefunction..." << std::endl;
 		itensor::MPS random_trial = randomMPS::randomMPS(sites, trial_bd, trial_correlation_length);
 		random_trial.normalize();
 		tw.set_trial_wavefunction(random_trial);
@@ -115,15 +113,12 @@ int main(int argc, char *argv[]){
 	tw.verbose = verbose;
 	
 	if(trial_wavefunction_file_name != ""){
-		std::cout << "Setting trial wavefunction from file..." << std::endl;
 		tw.set_trial_wavefunction(trial);
 	}
 
-	std::cerr << "Setting fixed node wavefunction to trial wavefunction..." << std::endl;
 	tw.set_fixed_node_wavefunction(tw.trial_wavefunction);
 
 	if(fn_wavefunction_file != ""){
-		std::cout << "Setting fixed node wavefunction from file..." << std::endl;
 		itensor::MPS fn = itensor::readFromFile<itensor::MPS>(fn_wavefunction_file, sites);
 		fn.replaceSiteInds(itensor::inds(sites));
 		//itensor::MPS fn(sites);
@@ -131,7 +126,6 @@ int main(int argc, char *argv[]){
 		tw.set_fixed_node_wavefunction(fn);
 	}
 
-	std::cerr<< "Creating starting wavefunction..." << std::endl;
 	if(starting_wavefunction_file != ""){
 		auto sw = itensor::readFromFile<itensor::MPS>(starting_wavefunction_file,sites);
 		sw.replaceSiteInds(itensor::inds(sites));
@@ -140,9 +134,7 @@ int main(int argc, char *argv[]){
 		read_from_file(sites, starting_wavefunction_file, sw);
 		std::cout << "Setting starting walker to starting wavefunction..." << std::endl;*/
 		tw.set_MPS(sw, 0);
-		std::cout << "Starting wavefunction has norm " << itensor::norm(tw.walkers[0]) << " and trial overlap " << itensor::inner(tw.walkers[0], tw.trial_wavefunction) << std::endl;
 	}
-	std::cout << "Starting ite..." << std::endl;
 
 	std::ofstream out_file(out_file_name);
 	//out_file << "Energy|Bond Dimension|Max Sz" << endl;
@@ -160,17 +152,10 @@ int main(int argc, char *argv[]){
 		if(iteration > 0){
 			tw.iterate_single();
 		}
-		std::cout << "Computing expectation value..." << std::endl;
-		Print(tw.trial_wavefunction);
-		Print(tw.fixed_node_wavefunction);
-		Print(tw.walkers[0]);
-		Print(H);
-		Print(sites);
 		double energy = tw.expectation_value(H);
 
 		vector<double> energies = tw.expectation_values(H);
 		vector<double> weights = tw.get_weights();
-		std::cout << "Computing overlaps..." << std::endl;
 		vector<double> overlaps = tw.weighted_overlaps(tw.trial_wavefunction);
 		/*if(trial_wavefunction_file_name != ""){
 			overlaps = tw.weighted_overlaps(trial);
@@ -184,7 +169,6 @@ int main(int argc, char *argv[]){
 		walker_overlaps.push_back(overlaps);
 		average_energies.push_back(energy);
 		num_current_walkers.push_back(tw.weights.size());
-		std::cout << "Computing entanglement entropies..." << std::endl;
 		entanglement_entropies.push_back(tw.average_entanglement_entropy(num_sites/2));
 		bds.push_back(tw.get_bds());
 		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has average weighted energy " << energy << " among " << weights.size() << " walkers (" << difftime(time(NULL), start_time) << "s)" << std::endl;
