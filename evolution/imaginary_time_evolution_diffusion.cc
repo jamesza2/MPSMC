@@ -29,6 +29,12 @@ void read_from_file(itensor::SiteSet &sites, std::string mps_file_name, itensor:
 	sites = itensor::SpinHalf(indices);
 }
 
+/*void fix_sites(itensor::MPS &psi, itensor::SiteSet &sites){
+	for(int i = 1; i <= itensor::length(psi); i++){
+		psi.ref(i) *= itensor::delta(itensor::siteIndex(psi, i), )
+	}
+}*/
+
 int main(int argc, char *argv[]){
 	int target_argc = 2;
 	if(argc != target_argc){
@@ -119,6 +125,7 @@ int main(int argc, char *argv[]){
 	if(fn_wavefunction_file != ""){
 		std::cout << "Setting fixed node wavefunction from file..." << std::endl;
 		itensor::MPS fn = itensor::readFromFile<itensor::MPS>(fn_wavefunction_file, sites);
+		fn.replaceSiteInds(itensor::inds(sites));
 		//itensor::MPS fn(sites);
 		//read_from_file(sites, fn_wavefunction_file, fn);
 		tw.set_fixed_node_wavefunction(fn);
@@ -127,6 +134,7 @@ int main(int argc, char *argv[]){
 	std::cerr<< "Creating starting wavefunction..." << std::endl;
 	if(starting_wavefunction_file != ""){
 		auto sw = itensor::readFromFile<itensor::MPS>(starting_wavefunction_file,sites);
+		sw.replaceSiteInds(itensor::inds(sites));
 		/*itensor::MPS sw(sites);
 		std::cout << "Reading starting wavefunction from file" << std::endl;
 		read_from_file(sites, starting_wavefunction_file, sw);
@@ -154,6 +162,7 @@ int main(int argc, char *argv[]){
 		}
 		std::cout << "Computing expectation value..." << std::endl;
 		Print(tw.trial_wavefunction);
+		Print(tw.fixed_node_wavefunction);
 		Print(tw.walkers[0]);
 		Print(H);
 		Print(sites);
