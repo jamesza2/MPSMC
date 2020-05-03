@@ -184,6 +184,7 @@ class ThermalWalkers{
 		void iterate(double beta){
 			for(double current_beta = tau; current_beta <= beta; current_beta += tau){
 				double old_weight_sum = norm(weights);
+				std::cout << "Applying MPO" << std::endl;
 				apply_MPO_no_truncation();
 				double new_weight_sum = norm(weights);
 				process();
@@ -197,6 +198,7 @@ class ThermalWalkers{
 				std::cerr << weight << " ";
 			}
 			std::cerr << std::endl;*/
+			std::cout << "Combining and splitting walkers..." << std::endl;
 			combine_walkers();
 			split_walkers();
 			/*std::cerr << "    Recombined walker weights: ";
@@ -784,16 +786,19 @@ class ThermalWalkers{
 				std::vector<itensor::Index> new_link_indices;
 				new_link_indices.reserve(num_sites);
 
+				std::cout << "Creating first link combiner..." << std::endl;
 				auto MPO_first_link = itensor::rightLinkIndex(*itev, 1);
 				auto MPS_first_link = itensor::rightLinkIndex(psi, 1);
 				auto [first_combiner, first_link_index] = itensor::combiner(itensor::IndexSet(MPO_first_link, MPS_first_link),{"Tags=","Link,l=1"});
 
 				std::vector<itensor::ITensor> new_MPS;
 				
+				std::cout << "Creating first multiplied tensor..." << std::endl;
 				new_MPS.push_back(psi(1)*(*itev)(1)*first_combiner);
 				new_link_indices.push_back(first_link_index);
 
 				for(int i = 2; i <= num_sites; i++){
+					std::cout << "Creating link combiner..." << std::endl;
 					auto MPO_left_link = itensor::leftLinkIndex(*itev, i);
 					auto MPS_left_link = itensor::leftLinkIndex(psi, i);
 					auto [left_combiner, left_combined_index] = itensor::combiner(MPO_left_link, MPS_left_link);
@@ -801,6 +806,7 @@ class ThermalWalkers{
 						new_MPS.push_back(psi(num_sites)*(*itev)(num_sites)*left_combiner*itensor::delta(left_combined_index, new_link_indices[num_sites-2]));
 						break;
 					}
+					std::cout << "Creating first multiplied tensor..." << std::endl;
 					auto MPO_right_link = itensor::rightLinkIndex(*itev, i);
 					auto MPS_right_link = itensor::rightLinkIndex(psi, i);
 					auto [right_combiner, right_combined_index] = itensor::combiner(itensor::IndexSet(MPO_right_link, MPS_right_link), {"Tags=","Link,l="+std::to_string(i)});
