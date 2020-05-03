@@ -117,17 +117,19 @@ int main(int argc, char *argv[]){
 
 	if(fn_wavefunction_file != ""){
 		std::cout << "Setting fixed node wavefunction from file..." << std::endl;
-		itensor::MPS fn(sites);
-		read_from_file(sites, fn_wavefunction_file, fn);
+		itensor::MPS fn = itensor::readFromFile<itensor::MPS>(fn_wavefunction_file, sites);
+		//itensor::MPS fn(sites);
+		//read_from_file(sites, fn_wavefunction_file, fn);
 		tw.set_fixed_node_wavefunction(fn);
 	}
 
 	std::cerr<< "Creating starting wavefunction..." << std::endl;
 	if(starting_wavefunction_file != ""){
-		itensor::MPS sw(sites);
+		auto sw = itensor::readFromFile<itensor::MPS>(starting_wavefunction_file,sites);
+		/*itensor::MPS sw(sites);
 		std::cout << "Reading starting wavefunction from file" << std::endl;
 		read_from_file(sites, starting_wavefunction_file, sw);
-		std::cout << "Setting starting walker to starting wavefunction..." << std::endl;
+		std::cout << "Setting starting walker to starting wavefunction..." << std::endl;*/
 		tw.set_MPS(sw, 0);
 		std::cout << "Starting wavefunction has norm " << itensor::norm(tw.walkers[0]) << " and trial overlap " << itensor::inner(tw.walkers[0], tw.trial_wavefunction) << std::endl;
 	}
