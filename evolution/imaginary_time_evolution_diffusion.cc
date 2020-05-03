@@ -81,7 +81,8 @@ int main(int argc, char *argv[]){
 
 	itensor::MPS trial(sites);
 	if(trial_wavefunction_file_name != ""){
-		read_from_file(sites, trial_wavefunction_file_name, trial);
+		trial = itensor::readFromFile<itensor::MPS>(trial_wavefunction_file_name, sites);
+		//read_from_file(sites, trial_wavefunction_file_name, trial);
 	}
 
 	OperatorMaker opm(sites);
@@ -155,6 +156,7 @@ int main(int argc, char *argv[]){
 		Print(tw.trial_wavefunction);
 		Print(tw.walkers[0]);
 		Print(H);
+		Print(sites);
 		double energy = tw.expectation_value(H);
 
 		vector<double> energies = tw.expectation_values(H);
