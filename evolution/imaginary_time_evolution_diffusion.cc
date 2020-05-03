@@ -150,6 +150,9 @@ int main(int argc, char *argv[]){
 			tw.iterate_single();
 		}
 		std::cout << "Computing expectation value..." << std::endl;
+		Print(tw.trial_wavefunction);
+		Print(tw.walkers[0]);
+		Print(H);
 		double energy = tw.expectation_value(H);
 
 		vector<double> energies = tw.expectation_values(H);
