@@ -28,6 +28,7 @@ int main(int argc, char *argv[]){
 	int trial_bd = input.getInteger("trial_bond_dimension");
 	double trial_correlation_length = input.getDouble("trial_correlation_length");
 	std::string mps_file_name = input.GetVariable("mps_file");
+	bool verbose = input.getBool("verbose");
 	
 
 	std::cerr << "Read input files" << endl;
@@ -39,6 +40,9 @@ int main(int argc, char *argv[]){
 	itensor::MPS random_trial = randomMPS::randomMPS(sites, trial_bd, trial_correlation_length);
 	random_trial.normalize();
 	itensor::writeToFile(mps_file_name, random_trial);
-	
+	if(verbose){
+		PrintData(random_trial);
+	}
+
 	//itensor::writeToFile(mps_file_name, psi);
 }
