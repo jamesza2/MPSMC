@@ -1,6 +1,6 @@
 #include "itensor/all.h"
 #include "../headers/input.h"
-#include "../headers/operators.h"
+#include "../headers/random_mps.h"
 #include <random>
 #include <ctime>
 #include <cmath>
