@@ -38,7 +38,7 @@ int main(int argc, char *argv[]){
 	itensor::SiteSet sites = itensor::SpinHalf(num_sites, {"ConserveQNs=", false});
 
 	itensor::MPS random_trial = randomMPS::randomMPS(sites, trial_bd, trial_correlation_length);
-	random_trial.normalize();
+	
 	itensor::writeToFile(mps_file_name, random_trial);
 	if(verbose){
 		PrintData(random_trial);
