@@ -72,6 +72,7 @@ int main(int argc, char *argv[]){
 	double trial_correlation_length = input.testDouble("trial_correlation_length", 0.5);
 	std::string fn_wavefunction_file = input.testString("fixed_node_wavefunction_file", "");
 	std::string starting_wavefunction_file = input.testString("starting_wavefunction_file", "");
+	std::string trial_energy_calculation_mode = input.testString("trial_energy_calculation_mode", "NORMAL");
 	std::streambuf *coutbuf = std::cerr.rdbuf();
 	std::ofstream log_file(log_file_name);
 	if(log_file_name != ""){
@@ -112,6 +113,21 @@ int main(int argc, char *argv[]){
 	tw.fixed_node = fixed_node;
 	tw.verbose = verbose;
 	
+	if(trial_energy_calculation_mode == "CONSTANT"){
+		tw.te_mode = ThermalWalkers::CONSTANT;
+	}
+	else{
+		if(trial_energy_calculation_mode == "ANTITRUNC"){
+			tw.te_mode = ThermalWalkers::ANTITRUNC;
+		}
+		else{
+			if(trial_energy_calculation_mode != "NORMAL"){
+				std::cout << "Warning: Couldn't read trial energy calculation mode" << std::endl;
+			}
+			tw.te_mode = ThermalWalkers::NORMAL;
+		}
+	}
+
 	if(trial_wavefunction_file_name != ""){
 		tw.set_trial_wavefunction(trial);
 	}
@@ -187,6 +203,7 @@ int main(int argc, char *argv[]){
 	out_file << "\n#TAU:\n" << tau;
 	out_file << "\n#MAX_BD:\n" << max_bd;
 	out_file << "\n#TRUNCATED_BD:\n" << truncated_bd;
+	out_file << "\n#TRIAL_ENERGY_CALCULATION_MODE:\n" << trial_energy_calculation_mode;
 	out_file << "\n#AVERAGE_ENERGIES:\n";
 	for(double energy : average_energies){
 		out_file << energy << " ";

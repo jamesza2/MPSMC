@@ -7,6 +7,10 @@
 #include <cmath>
 #include <complex>
 
+//Normal: Uses the previous 2 total weights to estimate energy, then attempts to make the total walker weight num_walkers
+//Constant: Uses a single estimate for the energy and nothing else
+//Antitrunc: Just tries to compensate for the truncation
+
 
 //Stores a wavefunction and iterates on it by repeatedly applying itev to it 
 class ThermalWalkers{
@@ -29,6 +33,8 @@ class ThermalWalkers{
 		bool verbose;
 		bool fixed_node; //If true, extincts any walker whose overlap with the trial wavefunction flips sign
 		bool original_overlap_positive;
+		enum trial_energy_calculation_mode{NORMAL, CONSTANT, ANTITRUNC} te_mode;
+
 
 		ThermalWalkers(itensor::SiteSet &sites, 
 			itensor::MPO &itev_input, 
@@ -59,6 +65,7 @@ class ThermalWalkers{
 			verbose = false;
 			fixed_node = false;
 			original_overlap_positive = (itensor::inner(psi, trial_wavefunction) > 0);
+			te_mode = NORMAL;
 		}
 
 		void set_trial_wavefunction(itensor::MPS &new_trial_wavefunction){
@@ -187,7 +194,16 @@ class ThermalWalkers{
 				apply_MPO_no_truncation();
 				double new_weight_sum = norm(weights);
 				process();
-				recalculate_trial_energy(std::log(old_weight_sum/new_weight_sum));
+				double after_trunc_weight_sum = norm(weights);
+				if(te_mode == NORMAL){
+					recalculate_trial_energy(std::log(old_weight_sum/new_weight_sum));
+				}
+				if(te_mode == ANTITRUNC){
+					recalculate_trial_energy(std::log(new_weight_sum/after_trunc_weight_sum)/tau);
+				}
+				if(te_mode == CONSTANT){
+					recalculate_trial_energy(-0.4386);
+				}
 			}
 		}
 
@@ -341,7 +357,12 @@ class ThermalWalkers{
 		void recalculate_trial_energy(double expected_energy = 0){
 			double total_weight = sum(weights);
 			double bounded_energy = std::min(std::max(expected_energy, -1.),0.);
-			trial_energy = std::log(static_cast<double>(num_walkers)/total_weight)/tau + bounded_energy;
+			if(te_mode == NORMAL){
+				trial_energy = std::log(static_cast<double>(num_walkers)/total_weight)/tau + bounded_energy;
+			}
+			if((te_mode == CONSTANT) || (te_mode == ANTITRUNC)){
+				trial_energy = bounded_energy;
+			}
 		}
 
 		void iterate_single(){
