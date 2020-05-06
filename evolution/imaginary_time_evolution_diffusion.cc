@@ -113,20 +113,7 @@ int main(int argc, char *argv[]){
 	tw.fixed_node = fixed_node;
 	tw.verbose = verbose;
 	
-	if(trial_energy_calculation_mode == "CONSTANT"){
-		tw.te_mode = ThermalWalkers::CONSTANT;
-	}
-	else{
-		if(trial_energy_calculation_mode == "ANTITRUNC"){
-			tw.te_mode = ThermalWalkers::ANTITRUNC;
-		}
-		else{
-			if(trial_energy_calculation_mode != "NORMAL"){
-				std::cout << "Warning: Couldn't read trial energy calculation mode" << std::endl;
-			}
-			tw.te_mode = ThermalWalkers::NORMAL;
-		}
-	}
+	tw.set_trial_energy_calculation_mode(trial_energy_calculation_mode);
 
 	if(trial_wavefunction_file_name != ""){
 		tw.set_trial_wavefunction(trial);

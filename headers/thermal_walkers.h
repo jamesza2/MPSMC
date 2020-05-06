@@ -33,7 +33,7 @@ class ThermalWalkers{
 		bool verbose;
 		bool fixed_node; //If true, extincts any walker whose overlap with the trial wavefunction flips sign
 		bool original_overlap_positive;
-		enum trial_energy_calculation_mode{NORMAL, CONSTANT, ANTITRUNC} te_mode;
+		enum trial_energy_calculation_mode{NORMAL, CONSTANT, ANTITRUNC, ONLY_ENERGY} te_mode;
 
 
 		ThermalWalkers(itensor::SiteSet &sites, 
@@ -66,6 +66,29 @@ class ThermalWalkers{
 			fixed_node = false;
 			original_overlap_positive = (itensor::inner(psi, trial_wavefunction) > 0);
 			te_mode = NORMAL;
+		}
+
+		void set_trial_energy_calculation_mode(std::string te_mode_string){
+			if(te_mode_string == "CONSTANT"){
+				te_mode = CONSTANT;
+			}
+			else{
+				if(trial_energy_calculation_mode == "ANTITRUNC"){
+					te_mode = ANTITRUNC;
+				}
+				else{
+					if(trial_energy_calculation_mode == "ONLY_ENERGY"){
+						te_mode = ONLY_ENERGY;
+					}
+					else{
+						if(trial_energy_calculation_mode != "NORMAL"){
+							std::cout << "Warning: Couldn't read trial energy calculation mode" << std::endl;
+						}
+						tw.te_mode = NORMAL;
+					}
+					
+				}
+			}
 		}
 
 		void set_trial_wavefunction(itensor::MPS &new_trial_wavefunction){
