@@ -73,18 +73,18 @@ class ThermalWalkers{
 				te_mode = CONSTANT;
 			}
 			else{
-				if(trial_energy_calculation_mode == "ANTITRUNC"){
+				if(te_mode_string == "ANTITRUNC"){
 					te_mode = ANTITRUNC;
 				}
 				else{
-					if(trial_energy_calculation_mode == "ONLY_ENERGY"){
+					if(te_mode_string == "ONLY_ENERGY"){
 						te_mode = ONLY_ENERGY;
 					}
 					else{
-						if(trial_energy_calculation_mode != "NORMAL"){
+						if(te_mode_string != "NORMAL"){
 							std::cout << "Warning: Couldn't read trial energy calculation mode" << std::endl;
 						}
-						tw.te_mode = NORMAL;
+						te_mode = NORMAL;
 					}
 					
 				}
