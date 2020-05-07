@@ -218,7 +218,7 @@ class ThermalWalkers{
 				double new_weight_sum = norm(weights);
 				process();
 				double after_trunc_weight_sum = norm(weights);
-				if(te_mode == NORMAL){
+				if((te_mode == NORMAL) || (te_mode == ONLY_ENERGY)){
 					recalculate_trial_energy(std::log(old_weight_sum/new_weight_sum));
 				}
 				if(te_mode == ANTITRUNC){
