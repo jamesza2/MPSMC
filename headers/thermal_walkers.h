@@ -225,7 +225,10 @@ class ThermalWalkers{
 					recalculate_trial_energy(std::log(new_weight_sum/after_trunc_weight_sum)/tau);
 				}
 				if(te_mode == CONSTANT){
-					recalculate_trial_energy(-0.4386);
+					trial_energy = -0.441873;
+				}
+				if(te_mode == ONLY_ENERGY){
+					trial_energy = std::log(old_weight_sum/new_weight_sum);
 				}
 			}
 		}
