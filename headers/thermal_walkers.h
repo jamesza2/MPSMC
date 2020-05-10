@@ -620,6 +620,21 @@ class ThermalWalkers{
 			return distribution(generator);
 		}
 
+		//Picks a random integer between 0 and len(weights), weighted by the weights std::vector.
+		//Stores data in the repeats vector and returns the number of unique selections
+		int random_weighted(std::vector<double> &weights, int num_picks, std::vector<int> &repeats){
+			std::vector<double> cumulative_weights = accumulate_weights(weights);
+			int num_unique_selections = 0;
+			for(int i = 0; i < num_picks; i++){
+				int random_element = random_cumulative_weighted_single(cumulative_weights);
+				if(repeats[random_element] == 0){
+					num_unique_selections += 1;
+				}
+				repeats[random_element] += 1;
+			}
+			return num_unique_selections;
+		}
+
 	private:
 		std::vector<double> abs_diagonal_elems(itensor::ITensor &T){
 			if(itensor::order(T) != 2){
@@ -782,20 +797,7 @@ class ThermalWalkers{
 			return random_cumulative_weighted_single(cumulative_weights);
 		}
 
-		//Picks a random integer between 0 and len(weights), weighted by the weights std::vector.
-		//Stores data in the repeats vector and returns the number of unique selections
-		int random_weighted(std::vector<double> &weights, int num_picks, std::vector<int> &repeats){
-			std::vector<double> cumulative_weights = accumulate_weights(weights);
-			int num_unique_selections = 0;
-			for(int i = 0; i < num_picks; i++){
-				int random_element = random_cumulative_weighted_single(cumulative_weights);
-				if(repeats[random_element] == 0){
-					num_unique_selections += 1;
-				}
-				repeats[random_element] += 1;
-			}
-			return num_unique_selections;
-		}
+		
 
 		//Collect repeated instances of n in the vector of integers and count how many times they've been repeated.
 		std::vector<std::pair<int, int>> collect_repeats(std::vector<int> random_integers){

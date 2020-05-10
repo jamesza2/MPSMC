@@ -178,7 +178,7 @@ int main(int argc, char *argv[]){
 
 		vector<int> random_selected_repeats;
 		tw.random_weighted(tw.weights, num_aggregated, random_selected_repeats);
-		itensor::MPS aggreated_state(sites);
+		itensor::MPS aggregated_state(sites);
 		for(int repeat_index = 0; repeat_index < random_selected_repeats.size(); repeat_index ++){
 			if(random_selected_repeats[repeat_index] != 0){
 				aggregated_state += random_selected_repeats[repeat_index]*tw.walkers[repeat_index];
