@@ -623,10 +623,18 @@ class ThermalWalkers{
 		//Picks a random integer between 0 and len(weights), weighted by the weights std::vector.
 		//Stores data in the repeats vector and returns the number of unique selections
 		int random_weighted(std::vector<double> &weights, int num_picks, std::vector<int> &repeats){
+			std::cout << "Weights vector: ";
+			for(double weight : weights){
+				std::cout << weight << " ";
+			}
+			std::cout << std::endl;
 			std::vector<double> cumulative_weights = accumulate_weights(weights);
+
 			int num_unique_selections = 0;
 			for(int i = 0; i < num_picks; i++){
+				std::cout << "Picking random element from cumulative weights..." << std::endl;
 				int random_element = random_cumulative_weighted_single(cumulative_weights);
+				std::cout << "Picked " << random_element << std::endl;
 				if(repeats[random_element] == 0){
 					num_unique_selections += 1;
 				}
