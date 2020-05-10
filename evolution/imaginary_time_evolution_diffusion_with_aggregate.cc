@@ -183,6 +183,7 @@ int main(int argc, char *argv[]){
 		itensor::MPS aggregated_state(sites);
 		for(int repeat_index = 0; repeat_index < random_selected_repeats.size(); repeat_index ++){
 			if(random_selected_repeats[repeat_index] != 0){
+				std::cout << "Summing state #" << repeat_index << " " << random_selected_repeats[repeat_index] << " times" << std::endl;
 				aggregated_state = itensor::sum(aggregated_state, random_selected_repeats[repeat_index]*tw.walkers[repeat_index], {"Maxdim", 500});
 			}
 		}
