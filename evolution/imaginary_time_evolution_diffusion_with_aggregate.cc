@@ -184,10 +184,10 @@ int main(int argc, char *argv[]){
 				aggregated_state += random_selected_repeats[repeat_index]*tw.walkers[repeat_index];
 			}
 		}
-		double anm = itensor::norm(aggreated_state);
-		double aggregated_energy = itensor::inner(aggreated_state, H, aggreated_state)/(anm*anm*num_sites);
+		double anm = itensor::norm(aggregated_state);
+		double aggregated_energy = itensor::inner(aggregated_state, H, aggregated_state)/(anm*anm*num_sites);
 		aggregated_energies.push_back(aggregated_energy);
-		Print(aggreated_state);
+		Print(aggregated_state);
 		bds.push_back(tw.get_bds());
 		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has average weighted energy " << energy << " among " << weights.size() << " walkers (" << difftime(time(NULL), start_time) << "s)" << std::endl;
 		std::cerr << "Native energy of first state: " << itensor::inner(tw.walkers[0], H, tw.walkers[0])/(num_sites*tw.weights[0]*tw.weights[0]) << std::endl;
