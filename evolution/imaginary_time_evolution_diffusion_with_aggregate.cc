@@ -176,10 +176,10 @@ int main(int argc, char *argv[]){
 		num_current_walkers.push_back(tw.weights.size());
 		entanglement_entropies.push_back(tw.average_entanglement_entropy(num_sites/2));
 
-		vector<int> random_selected_repeats;
-		std::cout << "Making random selections..." << std::endl;
+		vector<int> random_selected_repeats(tw.weights.size(), 0);
+		//std::cout << "Making random selections..." << std::endl;
 		tw.random_weighted(tw.weights, num_aggregated, random_selected_repeats);
-		std::cout << "Creating aggregated state..." << std::endl;
+		//std::cout << "Creating aggregated state..." << std::endl;
 		itensor::MPS aggregated_state(sites);
 		for(int repeat_index = 0; repeat_index < random_selected_repeats.size(); repeat_index ++){
 			if(random_selected_repeats[repeat_index] != 0){
