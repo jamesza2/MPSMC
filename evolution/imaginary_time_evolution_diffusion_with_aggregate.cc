@@ -189,6 +189,7 @@ int main(int argc, char *argv[]){
 				Print(tw.walkers[repeat_index]);
 				if(uninitialized){
 					aggregated_state = random_selected_repeats[repeat_index]*tw.walkers[repeat_index];
+					aggregated_state.position(1);
 					uninitialized = false;
 				}
 				else{
