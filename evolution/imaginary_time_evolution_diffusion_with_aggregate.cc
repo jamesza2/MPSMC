@@ -184,10 +184,14 @@ int main(int argc, char *argv[]){
 		for(int repeat_index = 0; repeat_index < random_selected_repeats.size(); repeat_index ++){
 			if(random_selected_repeats[repeat_index] != 0){
 				std::cout << "Summing state #" << repeat_index << " " << random_selected_repeats[repeat_index] << " times" << std::endl;
+				Print(aggregated_state);
+				Print(tw.walkers[repeat_index]);
 				aggregated_state = itensor::sum(aggregated_state, random_selected_repeats[repeat_index]*tw.walkers[repeat_index], {"Maxdim", 500});
 			}
 		}
+		std::cout << "Computing norm..." << std::endl;
 		double anm = itensor::norm(aggregated_state);
+		std::cout << "Computing aggregated energy..." << std::endl;
 		double aggregated_energy = itensor::inner(aggregated_state, H, aggregated_state)/(anm*anm*num_sites);
 		aggregated_energies.push_back(aggregated_energy);
 		Print(aggregated_state);
