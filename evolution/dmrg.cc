@@ -157,5 +157,6 @@ int main(int argc, char *argv[]){
 	}
 	
 	out_file.close();
+	itensor::PrintData(psi);
 	//itensor::writeToFile(mps_file_name, psi);
 }
