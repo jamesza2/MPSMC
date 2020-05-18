@@ -175,7 +175,7 @@ int main(int argc, char *argv[]){
 		//Print(true_gs);
 		//Print(tw.walkers[0]);
 		if(true_gs_file != ""){
-			std::cout << "Calculating true GS overlaps..." << std::endl;
+			//std::cout << "Calculating true GS overlaps..." << std::endl;
 			vector<double> tgs_overlaps = tw.weighted_overlaps(true_gs);
 			true_gs_overlaps.push_back(tgs_overlaps);
 		}
