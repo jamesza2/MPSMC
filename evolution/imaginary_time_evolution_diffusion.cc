@@ -260,7 +260,7 @@ int main(int argc, char *argv[]){
 		}
 	}
 
-	out_file << tw.walker_path;
+	out_file << "\n" << tw.walker_path;
 
 
 

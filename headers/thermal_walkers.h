@@ -333,12 +333,12 @@ class ThermalWalkers{
 						reweight(index_to_combine, first_weight + second_weight);
 						to_remove.insert(to_remove.begin(), MPS_index);
 						chosen_index = index_to_combine;
-						walker_path += "\nK " + MPS_index;
+						walker_path += "\nK " + std::to_string(MPS_index);
 					}
 					else{
 						reweight(MPS_index, first_weight + second_weight);
 						to_remove.insert(to_remove.begin(), index_to_combine);
-						walker_path += "\nK " + index_to_combine;
+						walker_path += "\nK " + std::to_string(index_to_combine);
 					}
 					
 					//std::cerr << "Combining walkers #" << index_to_combine << "(weight " << first_weight << ") and #" << MPS_index << "(weight " << second_weight << "), choosing " << chosen_index << std::endl;
