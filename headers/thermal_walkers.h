@@ -68,7 +68,7 @@ class ThermalWalkers{
 			fixed_node = false;
 			original_overlap_positive = (itensor::inner(psi, trial_wavefunction) > 0);
 			te_mode = NORMAL;
-			walker_path = "WALKER_PATH:";
+			walker_path = "#WALKER_PATH:";
 			step_number = 0;
 		}
 
