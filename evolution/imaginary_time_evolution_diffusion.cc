@@ -73,7 +73,7 @@ int main(int argc, char *argv[]){
 	std::string fn_wavefunction_file = input.testString("fixed_node_wavefunction_file", "");
 	std::string starting_wavefunction_file = input.testString("starting_wavefunction_file", "");
 	std::string true_gs_file = input.testString("true_ground_state_file", "");
-	vector<int> rearranged_sites = input.
+	vector<int> rearranged_sites = input.testVectorInt("rearranged_sites", vector<int>(0));
 	std::string trial_energy_calculation_mode = input.testString("trial_energy_calculation_mode", "NORMAL");
 
 	std::streambuf *coutbuf = std::cerr.rdbuf();

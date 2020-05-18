@@ -89,6 +89,15 @@ class InputClass
     }
   }
 
+  vector<int> testVectorInt(string myString, vector<int> def){
+    if(IsVariable(myString)){
+      return toVectorInt(GetVariable(myString));
+    }
+    else{
+      return def;
+    }
+  }
+
   bool toBool(string myString)
   {
     if ((myString=="True") || (myString=="true"))
