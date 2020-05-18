@@ -386,7 +386,7 @@ class ThermalWalkers{
 					reweight(MPS_index, old_weight/2);
 					walkers.push_back(itensor::MPS(walkers[MPS_index]));
 					weights.push_back(old_weight/2);
-					walker_path += "\nS " + std::to_string(step_number) + " " + std::to_string(MPS_index) + std::to_string(walkers.size() - 1);
+					walker_path += "\nS " + std::to_string(step_number) + " " + std::to_string(MPS_index) + " " + std::to_string(walkers.size() - 1);
 					//std::cerr << "Split walker #" << MPS_index << " with original weight " << old_weight << std::endl;
 				}
 			}
