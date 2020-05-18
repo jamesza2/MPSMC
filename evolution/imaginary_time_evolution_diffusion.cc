@@ -172,6 +172,8 @@ int main(int argc, char *argv[]){
 		vector<double> weights = tw.get_weights();
 		vector<double> overlaps = tw.weighted_overlaps(tw.trial_wavefunction);
 		std::cerr << "Measuring overlap with true ground state: " << std::endl;
+		Print(true_gs);
+		Print(tw.walkers[0]);
 		vector<double> tgs_overlaps = tw.weighted_overlaps(true_gs);
 		/*if(trial_wavefunction_file_name != ""){
 			overlaps = tw.weighted_overlaps(trial);
