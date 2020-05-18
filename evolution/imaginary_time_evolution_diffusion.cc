@@ -83,7 +83,7 @@ int main(int argc, char *argv[]){
 	}
 	
 
-	std::cerr << "Read input files" << endl;
+	std::cerr << "Read input files" << std::endl;
 
 	//Create XXZ Hamiltonian
 
@@ -99,6 +99,8 @@ int main(int argc, char *argv[]){
 	if(true_gs_file != ""){
 		true_gs = itensor::readFromFile<itensor::MPS>(true_gs_file, sites);
 	}
+
+	std::cerr << "Read true gs and trial states" << std::endl;
 
 	OperatorMaker opm(sites);
 	auto ampo = opm.XXZHamiltonian(Jz, h);
@@ -169,6 +171,7 @@ int main(int argc, char *argv[]){
 		vector<double> energies = tw.expectation_values(H);
 		vector<double> weights = tw.get_weights();
 		vector<double> overlaps = tw.weighted_overlaps(tw.trial_wavefunction);
+		std::cerr << "Measuring overlap with true ground state: " << std::endl;
 		vector<double> tgs_overlaps = tw.weighted_overlaps(true_gs);
 		/*if(trial_wavefunction_file_name != ""){
 			overlaps = tw.weighted_overlaps(trial);
