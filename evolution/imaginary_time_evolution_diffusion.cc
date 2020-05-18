@@ -174,7 +174,12 @@ int main(int argc, char *argv[]){
 		//std::cerr << "Measuring overlap with true ground state: " << std::endl;
 		//Print(true_gs);
 		//Print(tw.walkers[0]);
-		vector<double> tgs_overlaps = tw.weighted_overlaps(true_gs);
+		if(true_gs_file != ""){
+			std::cout << "Calculating true GS overlaps..." << std::endl;
+			vector<double> tgs_overlaps = tw.weighted_overlaps(true_gs);
+			true_gs_overlaps.push_back(tgs_overlaps);
+		}
+		
 		/*if(trial_wavefunction_file_name != ""){
 			overlaps = tw.weighted_overlaps(trial);
 		}
@@ -243,14 +248,16 @@ int main(int argc, char *argv[]){
 			out_file << walker_weight << " ";
 		}
 	}
-
-	out_file << "\n#TRUE_GROUND_STATE_OVERLAPS:";
-	for(vector<double> true_gs_overlap_vector : true_gs_overlaps){
-		out_file << "\n";
-		for(double true_gs_overlap : true_gs_overlap_vector){
-			out_file << true_gs_overlap << " ";
+	if(true_gs_file != ""){
+		out_file << "\n#TRUE_GROUND_STATE_OVERLAPS:";
+		for(vector<double> true_gs_overlap_vector : true_gs_overlaps){
+			out_file << "\n";
+			for(double true_gs_overlap : true_gs_overlap_vector){
+				out_file << true_gs_overlap << " ";
+			}
 		}
 	}
+	
 
 	out_file << "\n#BOND_DIMENSIONS:";
 	for(vector<int> bond_dimension_vector : bds){
