@@ -72,7 +72,10 @@ int main(int argc, char *argv[]){
 	double trial_correlation_length = input.testDouble("trial_correlation_length", 0.5);
 	std::string fn_wavefunction_file = input.testString("fixed_node_wavefunction_file", "");
 	std::string starting_wavefunction_file = input.testString("starting_wavefunction_file", "");
+	std::string true_gs_file = input.testString("true_ground_state_file", "");
+	vector<int> rearranged_sites = input.
 	std::string trial_energy_calculation_mode = input.testString("trial_energy_calculation_mode", "NORMAL");
+
 	std::streambuf *coutbuf = std::cerr.rdbuf();
 	std::ofstream log_file(log_file_name);
 	if(log_file_name != ""){
@@ -90,6 +93,11 @@ int main(int argc, char *argv[]){
 	if(trial_wavefunction_file_name != ""){
 		trial = itensor::readFromFile<itensor::MPS>(trial_wavefunction_file_name, sites);
 		//read_from_file(sites, trial_wavefunction_file_name, trial);
+	}
+
+	itensor::MPS true_gs(sites);
+	if(true_gs_file != ""){
+		true_gs = itensor::readFromFile<itensor::MPS>(true_gs_file, sites);
 	}
 
 	OperatorMaker opm(sites);
@@ -145,6 +153,7 @@ int main(int argc, char *argv[]){
 	vector<vector<double>> walker_energies;
 	vector<vector<double>> walker_weights;
 	vector<vector<double>> walker_overlaps;
+	vector<vector<double>> true_gs_overlaps;
 	vector<int> num_current_walkers;
 	vector<vector<int>> bds;
 	vector<double> trial_energies;
@@ -160,6 +169,7 @@ int main(int argc, char *argv[]){
 		vector<double> energies = tw.expectation_values(H);
 		vector<double> weights = tw.get_weights();
 		vector<double> overlaps = tw.weighted_overlaps(tw.trial_wavefunction);
+		vector<double> tgs_overlaps = tw.weighted_overlaps(true_gs);
 		/*if(trial_wavefunction_file_name != ""){
 			overlaps = tw.weighted_overlaps(trial);
 		}
@@ -229,6 +239,14 @@ int main(int argc, char *argv[]){
 		}
 	}
 
+	out_file << "\n#TRUE_GROUND_STATE_OVERLAPS:";
+	for(vector<double> true_gs_overlap_vector : true_gs_overlaps){
+		out_file << "\n";
+		for(double true_gs_overlap : true_gs_overlap_vector){
+			out_file << true_gs_overlap << " ";
+		}
+	}
+
 	out_file << "\n#BOND_DIMENSIONS:";
 	for(vector<int> bond_dimension_vector : bds){
 		out_file << "\n";
@@ -236,6 +254,8 @@ int main(int argc, char *argv[]){
 			out_file << bd << " ";
 		}
 	}
+
+	out_file << tw.walker_path;
 
 
 

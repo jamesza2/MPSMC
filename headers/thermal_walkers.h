@@ -34,6 +34,7 @@ class ThermalWalkers{
 		bool fixed_node; //If true, extincts any walker whose overlap with the trial wavefunction flips sign
 		bool original_overlap_positive;
 		enum trial_energy_calculation_mode{NORMAL, CONSTANT, ANTITRUNC, ONLY_ENERGY} te_mode;
+		std::string walker_path;
 
 
 		ThermalWalkers(itensor::SiteSet &sites, 
@@ -66,6 +67,7 @@ class ThermalWalkers{
 			fixed_node = false;
 			original_overlap_positive = (itensor::inner(psi, trial_wavefunction) > 0);
 			te_mode = NORMAL;
+			walker_path = "WALKER_PATH:";
 		}
 
 		void set_trial_energy_calculation_mode(std::string te_mode_string){
@@ -282,6 +284,7 @@ class ThermalWalkers{
 						double ov = ovs[MPS_index];
 						bool overlap_positive = (ov > 0);
 						if(overlap_positive != original_overlap_positive){
+							walker_path += "\nK " + std::to_string(MPS_index);
 							walkers.erase(walkers.begin() + MPS_index);
 							weights.erase(weights.begin() + MPS_index);
 							std::cerr << "  ERASING WALKER #" << MPS_index << " DUE TO OVERLAP " << ov << " BEING THE WRONG SIGN" << std::endl;
@@ -330,11 +333,14 @@ class ThermalWalkers{
 						reweight(index_to_combine, first_weight + second_weight);
 						to_remove.insert(to_remove.begin(), MPS_index);
 						chosen_index = index_to_combine;
+						walker_path += "\nK " + MPS_index;
 					}
 					else{
 						reweight(MPS_index, first_weight + second_weight);
 						to_remove.insert(to_remove.begin(), index_to_combine);
+						walker_path += "\nK " + index_to_combine;
 					}
+					
 					//std::cerr << "Combining walkers #" << index_to_combine << "(weight " << first_weight << ") and #" << MPS_index << "(weight " << second_weight << "), choosing " << chosen_index << std::endl;
 					index_to_combine = -1;
 				}
@@ -346,6 +352,7 @@ class ThermalWalkers{
 				walkers.erase(walkers.begin() + remove_index);
 				weights.erase(weights.begin() + remove_index);
 			}
+
 		}
 
 		void split_walkers(){
@@ -375,6 +382,7 @@ class ThermalWalkers{
 					reweight(MPS_index, old_weight/2);
 					walkers.push_back(itensor::MPS(walkers[MPS_index]));
 					weights.push_back(old_weight/2);
+					walker_path += "\nS " + std::to_string(MPS_index) + "|" + std::to_string(walkers.size() - 1);
 					//std::cerr << "Split walker #" << MPS_index << " with original weight " << old_weight << std::endl;
 				}
 			}
