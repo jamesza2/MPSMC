@@ -72,7 +72,12 @@ int main(int argc, char *argv[]){
 	double trial_correlation_length = input.testDouble("trial_correlation_length", 0.5);
 	std::string fn_wavefunction_file = input.testString("fixed_node_wavefunction_file", "");
 	std::string starting_wavefunction_file = input.testString("starting_wavefunction_file", "");
+	bool false_gs = input.testBool("false_gs", false);
+	int false_gs_bond_dimension = input.testInteger("false_gs_bond_dimension", 400);
 	std::string true_gs_file = input.testString("true_ground_state_file", "");
+	if(false_gs){
+		true_gs_file = "";
+	}
 	vector<int> rearranged_sites = input.testVectorInt("rearranged_sites", vector<int>(0));
 	std::string trial_energy_calculation_mode = input.testString("trial_energy_calculation_mode", "NORMAL");
 
@@ -99,6 +104,7 @@ int main(int argc, char *argv[]){
 	if(true_gs_file != ""){
 		true_gs = itensor::readFromFile<itensor::MPS>(true_gs_file, sites);
 	}
+
 
 	//std::cerr << "Read true gs and trial states" << std::endl;
 
@@ -149,6 +155,10 @@ int main(int argc, char *argv[]){
 		tw.set_MPS(sw, 0);
 	}
 
+	if(false_gs){
+		true_gs = itensor::MPS(tw.walkers[0]);
+	}
+
 	std::ofstream out_file(out_file_name);
 	//out_file << "Energy|Bond Dimension|Max Sz" << endl;
 	vector<double> average_energies;
@@ -167,6 +177,11 @@ int main(int argc, char *argv[]){
 			tw.iterate_single();
 		}
 		double energy = tw.expectation_value(H);
+
+		if(false_gs){
+			true_gs = itensor::applyMPO(itev, true_gs, {"Maxdim=", false_gs_bond_dimension});
+		}
+		
 
 		vector<double> energies = tw.expectation_values(H);
 		vector<double> weights = tw.get_weights();
