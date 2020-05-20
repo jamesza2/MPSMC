@@ -56,8 +56,11 @@ int main(int argc, char *argv[]){
 	int max_bd = input.getInteger("max_bond_dimension");
 	int truncated_bd = input.getInteger("truncated_bd");
 	double tau = input.getDouble("tau");
-	double Jz = input.getDouble("Jz");
-	double h = input.getDouble("external_field");
+	double Jz = input.testDouble("Jz", 1.0);
+	double h = input.testDouble("external_field", 0.0);
+	double J2 = input.testDouble("J2", 0.0);
+	double J3 = input.testDouble("J3", 0.0);
+	std::string hamiltonian_type = input.testString("hamiltonian_type", "XXZ");
 	int num_iterations = input.getInteger("num_iterations");
 	int num_walkers = input.getInteger("num_walkers");
 	int num_max_walkers = input.testInteger("num_max_walkers", num_walkers);
@@ -109,7 +112,14 @@ int main(int argc, char *argv[]){
 	//std::cerr << "Read true gs and trial states" << std::endl;
 
 	OperatorMaker opm(sites);
-	auto ampo = opm.XXZHamiltonian(Jz, h);
+	itensor::AutoMPO ampo;
+	if(hamiltonian_type == "J1J3"){
+		ampo = opm.J1J3Hamiltonian(J2, J3);
+	}
+	else{
+		ampo = opm.XXZHamiltonian(Jz, h);
+	}
+	
 	itensor::MPO itev = itensor::toExpH(ampo, tau);
 	itensor::MPO H = itensor::toMPO(ampo);
 
@@ -226,6 +236,14 @@ int main(int argc, char *argv[]){
 	out_file << "\n#MAX_BD:\n" << max_bd;
 	out_file << "\n#TRUNCATED_BD:\n" << truncated_bd;
 	out_file << "\n#TRIAL_ENERGY_CALCULATION_MODE:\n" << trial_energy_calculation_mode;
+	out_file << "\n#HAMILTONIAN_TYPE:\n" << hamiltonian_type;
+	out_file << "\n#HAMILTONIAN_PARAMETERS:\n";
+	if(hamiltonian_type == "J1J3"){
+		out_file << J2 << " " << J3;
+	}
+	else{
+		out_file << Jz << " " << h;
+	}
 	out_file << "\n#AVERAGE_ENERGIES:\n";
 	for(double energy : average_energies){
 		out_file << energy << " ";
