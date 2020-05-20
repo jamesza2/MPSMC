@@ -66,6 +66,9 @@ int main(int argc, char *argv[]){
 	int num_iterations = input.getInteger("num_iterations");
 	std::string out_file_name = input.GetVariable("out_file");
 	std::string mps_file_name = input.GetVariable("mps_file");
+	double J2 = input.testDouble("J2", 0.0);
+	double J3 = input.testDouble("J3", 0.0);
+	std::string hamiltonian_type = input.testString("hamiltonian_type", "XXZ");
 	
 
 	std::cerr << "Read input files" << endl;
@@ -77,7 +80,15 @@ int main(int argc, char *argv[]){
 	
 
 	OperatorMaker opm(sites);
-	auto ampo = opm.XXZHamiltonian(Jz, h);
+	itensor::AutoMPO ampo;
+
+	if(hamiltonian_type == "J1J3"){
+		ampo = opm.J1J3Hamiltonian(J2, J3);
+	}
+	else{
+		ampo = opm.XXZHamiltonian(Jz, h);
+	}
+
 	itensor::MPO H = itensor::toMPO(ampo);
 
 	auto avg_Sz_ampo = opm.AverageSz();
@@ -127,10 +138,16 @@ int main(int argc, char *argv[]){
 	}
 
 	out_file << "#MAX_BOND_DIMENSION:\n" << max_bd;
-	out_file << "\n#JZ:\n" << Jz;
-	out_file << "\n#EXTERNAL_FIELD:\n" << h;
 	out_file << "\n#NUM_SWEEPS:\n" << num_iterations;
 	out_file << "\n#NUM_SITES:\n" << num_sites;
+	out_file << "\n#HAMILTONIAN_TYPE:\n" << hamiltonian_type;
+	out_file << "\n#HAMILTONIAN_PARAMETERS:\n";
+	if(hamiltonian_type == "J1J3"){
+		out_file << J2 << " " << J3;
+	}
+	else{
+		out_file << Jz << " " << h;
+	}
 	out_file << "\n#ENERGIES:";
 	for(double energy:energies){
 		out_file << "\n" << energy;
