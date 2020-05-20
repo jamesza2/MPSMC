@@ -61,8 +61,8 @@ int main(int argc, char *argv[]){
 
 	int num_sites = input.getInteger("num_sites");
 	int max_bd = input.getInteger("max_bond_dimension");
-	double Jz = input.getDouble("Jz");
-	double h = input.getDouble("external_field");
+	double Jz = input.testDouble("Jz",1.0);
+	double h = input.testDouble("external_field",0.0);
 	int num_iterations = input.getInteger("num_iterations");
 	std::string out_file_name = input.GetVariable("out_file");
 	std::string mps_file_name = input.GetVariable("mps_file");
