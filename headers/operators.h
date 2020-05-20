@@ -23,6 +23,41 @@ class OperatorMaker{
 			return ampo;
 		}
 
+		itensor::AutoMPO J1J2Hamiltonian(double J2){
+			auto ampo = itensor::AutoMPO(*sites);
+			for(int i = 1; i < num_sites; i++){
+				ampo += 0.5,"S+",i,"S-",i+1;
+				ampo += 0.5,"S-",i,"S+",i+1;
+				ampo += 1.0,"Sz",i,"Sz",i+1;
+			}
+			for(int i = 1; i < num_sites-1; i++){
+				ampo += 0.5*J2,"S+",i,"S-",i+2;
+				ampo += 0.5*J2,"S-",i,"S+",i+2;
+				ampo += 1.0*J2,"Sz",i,"Sz",i+2;
+			}
+			return ampo;
+		}
+
+		itensor::AutoMPO J1J3Hamiltonian(double J2, double J3){
+			auto ampo = itensor::AutoMPO(*sites);
+			for(int i = 1; i < num_sites; i++){
+				ampo += 0.5,"S+",i,"S-",i+1;
+				ampo += 0.5,"S-",i,"S+",i+1;
+				ampo += 1.0,"Sz",i,"Sz",i+1;
+			}
+			for(int i = 1; i < num_sites-1; i++){
+				ampo += 0.5*J2,"S+",i,"S-",i+2;
+				ampo += 0.5*J2,"S-",i,"S+",i+2;
+				ampo += 1.0*J2,"Sz",i,"Sz",i+2;
+			}
+			for(int i = 1; i < num_sites-2; i++){
+				ampo += 0.5*J3,"S+",i,"S-",i+2;
+				ampo += 0.5*J3,"S-",i,"S+",i+2;
+				ampo += 1.0*J3,"Sz",i,"Sz",i+2;
+			}
+			return ampo;
+		}
+
 		itensor::AutoMPO AverageSz(){
 			auto ampo = itensor::AutoMPO(*sites);
 			double factor = 1.0/num_sites;
