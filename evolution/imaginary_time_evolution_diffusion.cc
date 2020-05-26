@@ -78,7 +78,7 @@ int main(int argc, char *argv[]){
 	bool false_gs = input.testBool("false_gs", false);
 	int false_gs_bond_dimension = input.testInteger("false_gs_bond_dimension", 400);
 	std::string true_gs_file = input.testString("true_ground_state_file", "");
-	std::string bond_list_file_name = input.testString("bond_list_file", "")
+	std::string bond_list_file_name = input.testString("bond_list_file", "");
 	if(false_gs){
 		true_gs_file = "";
 	}
