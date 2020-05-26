@@ -74,7 +74,7 @@ class OperatorMaker{
 					std::cout << "Creating bond at " << i+1 << ", " << j+1 << std::endl;
 				}
 				
-				for(int j : bond_matrix[i]){
+				for(int j : nnn_bond_matrix[i]){
 					ampo += 0.5*J2,"S+",i+1,"S-",j+1;
 					ampo += 0.5*J2,"S-",i+1,"S+",j+1;
 					ampo += 1.0*J2,"Sz",i+1,"Sz",j+1;
