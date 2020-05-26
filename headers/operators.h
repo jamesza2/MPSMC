@@ -66,7 +66,7 @@ class OperatorMaker{
 			auto bond_matrices = read_bonds(bond_list_file_name, num_sites, num_sites_per_rung);
 			std::vector<std::vector<int>> bond_matrix = bond_matrices[0];
 			std::vector<std::vector<int>> nnn_bond_matrix = bond_matrices[1];
-			for(int i = 1; i < num_sites; i++){
+			for(int i = 0; i < num_sites; i++){
 				for(int j : bond_matrix[i]){
 					ampo += 0.5,"S+",i,"S-",j;
 					ampo += 0.5,"S-",i,"S+",j;
