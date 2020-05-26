@@ -140,6 +140,8 @@ int main(int argc, char *argv[]){
 		taus.push_back(tau_to_graph);
 		errors.push_back(error);
 	}
+	std::cerr << "Final max bond dimension: " << max_bd << std::endl;
+	std::cerr << "Final energy: " << energies[energies.size()-1] << std::endl;
 
 	out_file << "#MAX_BOND_DIMENSION:\n" << max_bd;
 	out_file << "\n#NUM_SWEEPS:\n" << num_iterations;
@@ -178,6 +180,6 @@ int main(int argc, char *argv[]){
 	}
 	
 	out_file.close();
-	itensor::PrintData(psi);
+	//itensor::PrintData(psi);
 	//itensor::writeToFile(mps_file_name, psi);
 }

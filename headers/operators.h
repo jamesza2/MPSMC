@@ -204,7 +204,7 @@ class OperatorMaker{
 					else{
 						j = std::atoi(second_index.c_str());
 					}
-					std::cout << "Adding basic bond " << i << ", " << j << std::endl;
+					//std::cout << "Adding basic bond " << i << ", " << j << std::endl;
 					for(int rung = 0; rung < num_sites; rung+= num_sites_per_rung){
 						//cout << "Adding interaction at " << i+rung << ", " << j+rung << endl;
 						if((i + rung >= num_sites)||(j+rung >= num_sites)){continue;}
