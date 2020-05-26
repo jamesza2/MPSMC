@@ -117,9 +117,12 @@ int main(int argc, char *argv[]){
 	if(hamiltonian_type == "J1J3"){
 		ampo = opm.J1J3Hamiltonian(J2, J3);
 	}
-	else{
-		if(hamiltonian_type == "XC8Lattice")
+	if(hamiltonian_type == "XC8Lattice")
+	{
 		ampo = opm.Lattice(J2, bond_list_file_name, num_sites, 12);
+	}
+	if(hamiltonian_type == "XXZ"){
+		ampo = opm.XXZHamiltonian(Jz, h);
 	}
 	
 	itensor::MPO itev = itensor::toExpH(ampo, tau);

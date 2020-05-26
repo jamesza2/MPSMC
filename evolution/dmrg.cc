@@ -68,6 +68,7 @@ int main(int argc, char *argv[]){
 	std::string mps_file_name = input.GetVariable("mps_file");
 	double J2 = input.testDouble("J2", 0.0);
 	double J3 = input.testDouble("J3", 0.0);
+	std::string bond_list_file_name = input.testString("bond_list_file_name", "");
 	std::string hamiltonian_type = input.testString("hamiltonian_type", "XXZ");
 	
 
@@ -85,7 +86,10 @@ int main(int argc, char *argv[]){
 	if(hamiltonian_type == "J1J3"){
 		ampo = opm.J1J3Hamiltonian(J2, J3);
 	}
-	else{
+	if(hamiltonian_type == "XC8Lattice"){
+		ampo = opm.Lattice(J2, bond_list_file_name, num_sites, 12);
+	}
+	if(hamiltonian_type == "XXZ"){
 		ampo = opm.XXZHamiltonian(Jz, h);
 	}
 
