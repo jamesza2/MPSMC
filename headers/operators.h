@@ -68,17 +68,17 @@ class OperatorMaker{
 			std::vector<std::vector<int>> nnn_bond_matrix = bond_matrices[1];
 			for(int i = 0; i < num_sites; i++){
 				for(int j : bond_matrix[i]){
-					ampo += 0.5,"S+",i,"S-",j;
-					ampo += 0.5,"S-",i,"S+",j;
-					ampo += 1.0,"Sz",i,"Sz",j;
-					std::cout << "Creating bond at " << i << ", " << j << std::endl;
+					ampo += 0.5,"S+",i+1,"S-",j+1;
+					ampo += 0.5,"S-",i+1,"S+",j+1;
+					ampo += 1.0,"Sz",i+1,"Sz",j+1;
+					std::cout << "Creating bond at " << i+1 << ", " << j+1 << std::endl;
 				}
 				
 				for(int j : bond_matrix[i]){
-					ampo += 0.5*J2,"S+",i,"S-",j;
-					ampo += 0.5*J2,"S-",i,"S+",j;
-					ampo += 1.0*J2,"Sz",i,"Sz",j;
-					std::cout << "Creating NNN bond at " << i << ", " << j << std::endl;
+					ampo += 0.5*J2,"S+",i+1,"S-",j+1;
+					ampo += 0.5*J2,"S-",i+1,"S+",j+1;
+					ampo += 1.0*J2,"Sz",i+1,"Sz",j+1;
+					std::cout << "Creating NNN bond at " << i+1 << ", " << j+1 << std::endl;
 				}
 
 			}
