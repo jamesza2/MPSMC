@@ -70,6 +70,7 @@ int main(int argc, char *argv[]){
 	double J3 = input.testDouble("J3", 0.0);
 	std::string bond_list_file_name = input.testString("bond_list_file", "");
 	std::string hamiltonian_type = input.testString("hamiltonian_type", "XXZ");
+	bool check_tau_error = input.testBool("check_tau_error", false);
 	
 
 	std::cerr << "Read input files" << endl;
@@ -129,17 +130,20 @@ int main(int argc, char *argv[]){
 	vector<double> taus;
 	vector<double> errors;
 	std::cerr << "Ground state has energy " << gs_energy << " and squared norm " << itensor::inner(psi, psi) << std::endl;
-	for(int iteration = 0; iteration < num_iterations; iteration ++){
-		double tau_to_graph = (static_cast<double>(iteration)/num_iterations);
-		tau_to_graph *= tau_to_graph;
-		itensor::MPO itev = itensor::toExpH(ampo, tau_to_graph);
-		itensor::MPS new_psi(psi);
-		apply_MPO_no_truncation(itev, new_psi);
-		double error = (itensor::inner(psi, new_psi) - std::exp(-tau_to_graph*gs_energy)*itensor::inner(psi, psi))/num_sites;
-		std::cerr << "Tau = " << tau_to_graph << " has error " << error << std::endl;
-		taus.push_back(tau_to_graph);
-		errors.push_back(error);
+	if(check_tau_error){
+		for(int iteration = 0; iteration < num_iterations; iteration ++){
+			double tau_to_graph = (static_cast<double>(iteration)/num_iterations);
+			tau_to_graph *= tau_to_graph;
+			itensor::MPO itev = itensor::toExpH(ampo, tau_to_graph);
+			itensor::MPS new_psi(psi);
+			apply_MPO_no_truncation(itev, new_psi);
+			double error = (itensor::inner(psi, new_psi) - std::exp(-tau_to_graph*gs_energy)*itensor::inner(psi, psi))/num_sites;
+			std::cerr << "Tau = " << tau_to_graph << " has error " << error << std::endl;
+			taus.push_back(tau_to_graph);
+			errors.push_back(error);
+		}
 	}
+	
 	std::cerr << "Final max bond dimension: " << max_bd << std::endl;
 	std::cerr << "Final energy: " << energies[energies.size()-1] << std::endl;
 
