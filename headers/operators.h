@@ -62,6 +62,7 @@ class OperatorMaker{
 		itensor::AutoMPO Lattice(double J2, std::string bond_list_file_name, int num_sites, int num_sites_per_rung){
 
 			auto ampo = itensor::AutoMPO(*sites);
+			std::cout << "Reading bond list file name " << bond_list_file_name << std::endl;
 			auto bond_matrices = read_bonds(bond_list_file_name, num_sites, num_sites_per_rung);
 			std::vector<std::vector<int>> bond_matrix = bond_matrices[0];
 			std::vector<std::vector<int>> nnn_bond_matrix = bond_matrices[1];
@@ -203,6 +204,7 @@ class OperatorMaker{
 					else{
 						j = std::atoi(second_index.c_str());
 					}
+					std::cout << "Adding basic bond " << i << ", " << j << std::endl;
 					for(int rung = 0; rung < num_sites; rung+= num_sites_per_rung){
 						//cout << "Adding interaction at " << i+rung << ", " << j+rung << endl;
 						if((i + rung >= num_sites)||(j+rung >= num_sites)){continue;}
