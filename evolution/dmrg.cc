@@ -68,7 +68,7 @@ int main(int argc, char *argv[]){
 	std::string mps_file_name = input.GetVariable("mps_file");
 	double J2 = input.testDouble("J2", 0.0);
 	double J3 = input.testDouble("J3", 0.0);
-	std::string bond_list_file_name = input.testString("bond_list_file_name", "");
+	std::string bond_list_file_name = input.testString("bond_list_file", "");
 	std::string hamiltonian_type = input.testString("hamiltonian_type", "XXZ");
 	
 
