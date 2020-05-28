@@ -101,6 +101,7 @@ int main(int argc, char *argv[]){
 	itensor::MPS trial(sites);
 	if(trial_wavefunction_file_name != ""){
 		trial = itensor::readFromFile<itensor::MPS>(trial_wavefunction_file_name, sites);
+		trial.replaceSiteInds(itensor::inds(sites));
 		//read_from_file(sites, trial_wavefunction_file_name, trial);
 	}
 
@@ -147,6 +148,7 @@ int main(int argc, char *argv[]){
 	tw.set_trial_energy_calculation_mode(trial_energy_calculation_mode);
 
 	if(trial_wavefunction_file_name != ""){
+
 		tw.set_trial_wavefunction(trial);
 	}
 
