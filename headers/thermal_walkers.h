@@ -220,7 +220,7 @@ class ThermalWalkers{
 		void iterate(double beta){
 			for(double current_beta = tau; current_beta <= beta; current_beta += tau){
 				double old_weight_sum = norm(weights);
-				std::cerr << " Starting first state energy: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+				//std::cerr << " Starting first state energy: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 				apply_MPO_no_truncation();
 				std::cerr << " First state energy after itev: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 				double new_weight_sum = norm(weights);
@@ -251,17 +251,20 @@ class ThermalWalkers{
 			std::cerr << std::endl;*/
 			time_t start_time = time(NULL);
 			combine_walkers();
-			std::cerr << " First state energy after combining: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
-			std::cerr << "Combined walkers (" << difftime(time(NULL), start_time)*1000 << "ms)" << endl;
+			//std::cerr << " First state energy after combining: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			//std::cerr << "Combined walkers (" << difftime(time(NULL), start_time)*1000 << "ms)" << endl;
 			
 			split_walkers();
-			std::cerr << " First state energy after splitting: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			std::cerr << " First state energy after combining and splitting: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 			
 			/*std::cerr << "    Recombined walker weights: ";
 			for(double weight : weights){
 				std::cerr << weight << " ";
 			}
 			std::cerr << std::endl;*/
+
+			
+
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
 					itensor::MPS original(walkers[MPS_index]);
@@ -278,7 +281,7 @@ class ThermalWalkers{
 					}
 				}
 			}
-			std::cerr << " First state energy after truncation: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			//std::cerr << " First state energy after truncation: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 			
 			//For each walker:
 			//If the overlap with the trial wavefunction flips sign, kill it
@@ -461,7 +464,8 @@ class ThermalWalkers{
 			auto V_original_index = itensor::commonIndex(S,V);
 			auto U_original_index = itensor::commonIndex(U,S);
 			std::vector<double> singular_values = abs_diagonal_elems(S);
-			if(verbose){
+			int middle_site = num_sites/2;
+			if((site == middle_site) && (MPS_index == 0)){
 				std::cerr << "  Pre-truncation singular values: ";
 				for(double sv : singular_values){
 					std::cerr << sv << " ";
@@ -575,7 +579,8 @@ class ThermalWalkers{
 				S.set(T_truncated_index = repeat_index + kept_singular_values, T_truncated_index_primed = repeat_index + kept_singular_values, singular_value_weight*truncated_repeats[repeat_index-1]);
 			}
 			std::vector<double> new_singular_values = abs_diagonal_elems(S);
-			if(verbose){
+			int middle_site = num_sites/2;
+			if((site == middle_site) && (MPS_index == 0)){
 				std::cerr << "  Post-truncation singular values: ";
 				for(double sv : new_singular_values){
 					std::cerr << sv << " ";

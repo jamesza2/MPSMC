@@ -232,7 +232,7 @@ int main(int argc, char *argv[]){
 		entanglement_entropies.push_back(tw.average_entanglement_entropy(num_sites/2));
 		bds.push_back(tw.get_bds());
 		std::cerr << "Iteration " << iteration+1  << "/" << num_iterations << " has average weighted energy " << energy << " among " << weights.size() << " walkers (" << difftime(time(NULL), start_time) << "s)" << std::endl;
-		std::cerr << "Native energy of first state: " << itensor::inner(tw.walkers[0], H, tw.walkers[0])/(num_sites*tw.weights[0]*tw.weights[0]) << std::endl;
+		std::cerr << "First state energy after truncation: " << itensor::inner(tw.walkers[0], H, tw.walkers[0])/(num_sites*tw.weights[0]*tw.weights[0]) << std::endl;
 		//std::cerr << "Trial wavefunction native energy: " << itensor::inner(tw.trial_wavefunction, H, tw.trial_wavefunction)/(num_sites*itensor::inner(tw.trial_wavefunction, tw.trial_wavefunction)) << std::endl;
 		std::cout << "Iteration " << iteration+1 << "/" << num_iterations << " complete (" << difftime(time(NULL), start_time) << "s)\r";
 		std::cout << std::flush;
