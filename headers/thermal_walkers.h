@@ -18,6 +18,7 @@ class ThermalWalkers{
 		vector<itensor::MPS> walkers;
 		vector<double> weights;
 		itensor::MPO *itev;
+		itensor::MPO *H;
 		itensor::MPS trial_wavefunction;
 		itensor::MPS fixed_node_wavefunction;
 		double tau; //Iterate it N times to time evolve by beta = N*tau
@@ -36,6 +37,7 @@ class ThermalWalkers{
 		enum trial_energy_calculation_mode{NORMAL, CONSTANT, ANTITRUNC, ONLY_ENERGY} te_mode;
 		std::string walker_path;
 		int step_number;
+		int num_sites;
 
 
 		ThermalWalkers(itensor::SiteSet &sites, 
@@ -72,6 +74,7 @@ class ThermalWalkers{
 			te_mode = NORMAL;
 			walker_path = "#WALKER_PATH:";
 			step_number = 0;
+			num_sites = itensor::length(psi);
 		}
 
 		void set_trial_energy_calculation_mode(std::string te_mode_string){
@@ -112,7 +115,6 @@ class ThermalWalkers{
 		vector<double> expectation_values(itensor::MPO &A){
 			//auto trial_wavefunction = walkers[0];
 			vector<double> evs;
-			int num_sites = itensor::length(walkers[0]);
 			for(auto MPS_iter = walkers.begin(); MPS_iter != walkers.end(); ++MPS_iter){
 
 				std::complex<double> me_complex = itensor::innerC(trial_wavefunction, A, *MPS_iter);
@@ -183,8 +185,6 @@ class ThermalWalkers{
 			//auto trial_wavefunction = walkers[0];
 			double weighted_energy = 0;
 			double weighted_sum = 0;
-
-			int num_sites = itensor::length(walkers[0]);
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				weighted_energy += std::real(itensor::innerC(trial_wavefunction, A, walkers[MPS_index]));
 				weighted_sum += std::real(itensor::innerC(trial_wavefunction, walkers[MPS_index]));
@@ -220,9 +220,9 @@ class ThermalWalkers{
 		void iterate(double beta){
 			for(double current_beta = tau; current_beta <= beta; current_beta += tau){
 				double old_weight_sum = norm(weights);
-				std::cerr << " Starting first state energy: " <<itensor::inner(walkers[0], H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+				std::cerr << " Starting first state energy: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 				apply_MPO_no_truncation();
-				std::cerr << " First state energy after itev: " <<itensor::inner(walkers[0], H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+				std::cerr << " First state energy after itev: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 				double new_weight_sum = norm(weights);
 				process();
 				double after_trunc_weight_sum = norm(weights);
@@ -505,7 +505,6 @@ class ThermalWalkers{
 			truncate_based_on_selection(truncated_repeats, original_indices, U, S, V, original_bd, site, MPS_index, singular_value_weight);
 		}
 		void truncate_single_MPS(int MPS_index){
-			int num_sites = itensor::length(walkers[MPS_index]);
 			for(int site = 1; site < num_sites; site++){
 				if(verbose){
 					std::cerr << " On site " << site << "..." << std::endl;
@@ -515,7 +514,6 @@ class ThermalWalkers{
 		}
 
 		void truncate(){
-			//int num_sites = itensor::length(walkers[0]);
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
 					truncate_single_MPS(MPS_index);
@@ -861,7 +859,6 @@ class ThermalWalkers{
 				itensor::MPS old_psi(walkers[MPS_index]);
 				double old_weight = weights[MPS_index];
 				itensor::MPS & psi = walkers.at(MPS_index);
-				int num_sites = itensor::length(psi);
 
 				std::vector<itensor::Index> new_link_indices;
 				new_link_indices.reserve(num_sites);
