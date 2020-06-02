@@ -57,7 +57,7 @@ class ThermalWalkers{
 			weights.push_back(std::sqrt(std::abs(itensor::innerC(psi, psi))));
 			trial_wavefunction = itensor::MPS(psi);
 			fixed_node_wavefunction = itensor::MPS(trial_wavefunction);
-			H = &H_input
+			H = &H_input;
 			itev = &itev_input;
 			tau = tau_input;
 			max_bd = max_bond_dimension_input;
@@ -251,11 +251,11 @@ class ThermalWalkers{
 			std::cerr << std::endl;*/
 			time_t start_time = time(NULL);
 			combine_walkers();
-			std::cerr << " First state energy after combining: " <<itensor::inner(walkers[0], H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			std::cerr << " First state energy after combining: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 			std::cerr << "Combined walkers (" << difftime(time(NULL), start_time)*1000 << "ms)" << endl;
 			
 			split_walkers();
-			std::cerr << " First state energy after splitting: " <<itensor::inner(walkers[0], H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			std::cerr << " First state energy after splitting: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 			
 			/*std::cerr << "    Recombined walker weights: ";
 			for(double weight : weights){
@@ -278,7 +278,7 @@ class ThermalWalkers{
 					}
 				}
 			}
-			std::cerr << " First state energy after truncation: " <<itensor::inner(walkers[0], H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			std::cerr << " First state energy after truncation: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 			
 			//For each walker:
 			//If the overlap with the trial wavefunction flips sign, kill it
