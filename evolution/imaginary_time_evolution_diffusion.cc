@@ -129,15 +129,15 @@ int main(int argc, char *argv[]){
 	itensor::MPO itev = itensor::toExpH(ampo, tau);
 	itensor::MPO H = itensor::toMPO(ampo);
 
-	Print(H);
-	Print(itev);
+	//Print(H);
+	//Print(itev);
 
 	auto avg_Sz_ampo = opm.AverageSz();
 	itensor::MPO avg_Sz = itensor::toMPO(avg_Sz_ampo);
 
 
 
-	ThermalWalkers tw(sites, itev, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
+	ThermalWalkers tw(sites, itev, H, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
 	if(trial_bd != 0){
 		itensor::MPS random_trial = randomMPS::randomMPS(sites, trial_bd, trial_correlation_length);
 		random_trial.normalize();

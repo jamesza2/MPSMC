@@ -40,6 +40,7 @@ class ThermalWalkers{
 
 		ThermalWalkers(itensor::SiteSet &sites, 
 			itensor::MPO &itev_input, 
+			itensor::MPO &H_input,
 			double tau_input, 
 			int max_bond_dimension_input, 
 			int truncated_bond_dimension_input,
@@ -54,6 +55,7 @@ class ThermalWalkers{
 			weights.push_back(std::sqrt(std::abs(itensor::innerC(psi, psi))));
 			trial_wavefunction = itensor::MPS(psi);
 			fixed_node_wavefunction = itensor::MPS(trial_wavefunction);
+			H = &H_input
 			itev = &itev_input;
 			tau = tau_input;
 			max_bd = max_bond_dimension_input;
@@ -218,7 +220,9 @@ class ThermalWalkers{
 		void iterate(double beta){
 			for(double current_beta = tau; current_beta <= beta; current_beta += tau){
 				double old_weight_sum = norm(weights);
+				std::cerr << " Starting first state energy: " <<itensor::inner(walkers[0], H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 				apply_MPO_no_truncation();
+				std::cerr << " First state energy after itev: " <<itensor::inner(walkers[0], H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 				double new_weight_sum = norm(weights);
 				process();
 				double after_trunc_weight_sum = norm(weights);
@@ -245,8 +249,14 @@ class ThermalWalkers{
 				std::cerr << weight << " ";
 			}
 			std::cerr << std::endl;*/
+			time_t start_time = time(NULL);
 			combine_walkers();
+			std::cerr << " First state energy after combining: " <<itensor::inner(walkers[0], H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			std::cerr << "Combined walkers (" << difftime(time(NULL), start_time)*1000 << "ms)" << endl;
+			
 			split_walkers();
+			std::cerr << " First state energy after splitting: " <<itensor::inner(walkers[0], H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			
 			/*std::cerr << "    Recombined walker weights: ";
 			for(double weight : weights){
 				std::cerr << weight << " ";
@@ -262,11 +272,14 @@ class ThermalWalkers{
 					
 					truncate_single_MPS(MPS_index);
 					reweight(MPS_index);
+					
 					if(verbose){
 						std::cerr << "FIDELITY AFTER TRUNCATION: " << itensor::inner(original, walkers[MPS_index])/(old_weight*weights[MPS_index]) << std::endl;
 					}
 				}
 			}
+			std::cerr << " First state energy after truncation: " <<itensor::inner(walkers[0], H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			
 			//For each walker:
 			//If the overlap with the trial wavefunction flips sign, kill it
 			//But if all overlaps flip sign, keep them all
