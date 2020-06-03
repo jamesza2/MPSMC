@@ -76,7 +76,7 @@ class ThermalWalkers{
 			walker_path = "#WALKER_PATH:";
 			step_number = 0;
 			num_sites = itensor::length(psi);
-			singular_value_sum_threshhold = 100;
+			singular_value_sum_threshhold = 0;
 		}
 
 		void set_trial_energy_calculation_mode(std::string te_mode_string){
