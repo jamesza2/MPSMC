@@ -79,6 +79,7 @@ int main(int argc, char *argv[]){
 	int false_gs_bond_dimension = input.testInteger("false_gs_bond_dimension", 400);
 	std::string true_gs_file = input.testString("true_ground_state_file", "");
 	std::string bond_list_file_name = input.testString("bond_list_file", "");
+	double singular_value_sum_threshhold = input.testDouble("singular_value_sum_threshhold", 100);
 	if(false_gs){
 		true_gs_file = "";
 	}
@@ -147,6 +148,7 @@ int main(int argc, char *argv[]){
 	tw.set_kept_singular_values(kept_singular_values);
 	tw.fixed_node = fixed_node;
 	tw.verbose = verbose;
+	tw.singular_value_sum_threshhold = singular_value_sum_threshhold;
 	
 	tw.set_trial_energy_calculation_mode(trial_energy_calculation_mode);
 
