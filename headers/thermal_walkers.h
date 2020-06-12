@@ -6,7 +6,6 @@
 #include <ctime>
 #include <cmath>
 #include <complex>
-#include <format>
 
 //Normal: Uses the previous 2 total weights to estimate energy, then attempts to make the total walker weight num_walkers
 //Constant: Uses a single estimate for the energy and nothing else
@@ -135,12 +134,20 @@ class ThermalWalkers{
 
 		std::string print_times(){
 			process_times[0] = std::difftime(std::time(NULL), timers[0]);
-			std::string printout = std::format("TOTAL TIME: {}",process_times[0]);
+			std::string printout = "TOTAL TIME: " + std::to_string(process_times[0]);
+			printout += "\nChecks: " + std::to_string(process_times[1]);
+			printout += "\nImaginary Time Evolution: " + std::to_string(process_times[2]);
+			printout += "\nSVD: " + std::to_string(process_times[3]);
+			printout += "\nSelecting Singular Values: " + std::to_string(process_times[4]);
+			printout += "\nTruncation: " + std::to_string(process_times[5]);
+			printout += "\nEnergy Calculation: " + std::to_string(process_times[6]);
+			printout += "\nCombining and Splitting Walkers: " + std::to_string(process_times[7]);
+			/*std::string printout = std::format("TOTAL TIME: {}",process_times[0]);
 			printout += std::format("\nChecks: {}",process_times[1]);
 			printout += std::format("\nPerforming Imaginary Time Evolution: {}",process_times[2]);
 			printout += std::format("\nSVD: {}\nSelecting Singular Values: {}\nTruncation: {}", process_times[3], process_times[4], process_times[5]);
 			printout += std::format("\nEnergy Calculation: {}", process_times[6]);
-			printout += std::format("\nCombining and splitting walkers: {}", process_times[7]);
+			printout += std::format("\nCombining and splitting walkers: {}", process_times[7]);*/
 			return printout
 		}
 
