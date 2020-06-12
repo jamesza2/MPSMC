@@ -148,7 +148,7 @@ class ThermalWalkers{
 			printout += std::format("\nSVD: {}\nSelecting Singular Values: {}\nTruncation: {}", process_times[3], process_times[4], process_times[5]);
 			printout += std::format("\nEnergy Calculation: {}", process_times[6]);
 			printout += std::format("\nCombining and splitting walkers: {}", process_times[7]);*/
-			return printout
+			return printout;
 		}
 
 		vector<double> expectation_values(itensor::MPO &A){
