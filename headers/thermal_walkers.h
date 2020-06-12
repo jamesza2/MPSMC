@@ -11,7 +11,7 @@
 //Constant: Uses a single estimate for the energy and nothing else
 //Antitrunc: Just tries to compensate for the truncation
 
-const NUM_PROCESSES_TO_TIME = 8;
+const int NUM_PROCESSES_TO_TIME = 8;
 
 
 //Stores a wavefunction and iterates on it by repeatedly applying itev to it 
