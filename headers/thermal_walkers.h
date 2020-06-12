@@ -6,10 +6,13 @@
 #include <ctime>
 #include <cmath>
 #include <complex>
+#include <format>
 
 //Normal: Uses the previous 2 total weights to estimate energy, then attempts to make the total walker weight num_walkers
 //Constant: Uses a single estimate for the energy and nothing else
 //Antitrunc: Just tries to compensate for the truncation
+
+const NUM_PROCESSES_TO_TIME = 8;
 
 
 //Stores a wavefunction and iterates on it by repeatedly applying itev to it 
@@ -39,6 +42,10 @@ class ThermalWalkers{
 		int step_number;
 		int num_sites;
 		double singular_value_sum_threshhold;
+		bool timing;
+		std::vector<double> process_times;
+		std::vector<std::time_t> timers;
+		std::time_t creation_time;
 
 
 		ThermalWalkers(itensor::SiteSet &sites, 
@@ -77,6 +84,9 @@ class ThermalWalkers{
 			step_number = 0;
 			num_sites = itensor::length(psi);
 			singular_value_sum_threshhold = 0;
+			timing = false;
+			process_times = std::vector<double>(NUM_PROCESSES_TO_TIME, 0.0);
+			timers = std::vector<std::time_t>(NUM_PROCESSES_TO_TIME, std::time(NULL));
 		}
 
 		void set_trial_energy_calculation_mode(std::string te_mode_string){
@@ -113,6 +123,26 @@ class ThermalWalkers{
 		void set_kept_singular_values(int kept_singular_values_input){
 			kept_singular_values = kept_singular_values_input;
 		}
+		void set_timing(bool new_timing){
+			timing = new_timing;
+		}
+
+		double reset_time(int time_index){
+			double time_diff = std::difftime(std::time(NULL), timers[time_index]);
+			timers[time_index] = std::time(NULL);
+			return time_diff;
+		}
+
+		std::string print_times(){
+			process_times[0] = std::difftime(std::time(NULL), timers[0]);
+			std::string printout = std::format("TOTAL TIME: {}",process_times[0]);
+			printout += std::format("\nChecks: {}",process_times[1]);
+			printout += std::format("\nPerforming Imaginary Time Evolution: {}",process_times[2]);
+			printout += std::format("\nSVD: {}\nSelecting Singular Values: {}\nTruncation: {}", process_times[3], process_times[4], process_times[5]);
+			printout += std::format("\nEnergy Calculation: {}", process_times[6]);
+			printout += std::format("\nCombining and splitting walkers: {}", process_times[7]);
+			return printout
+		}
 
 		vector<double> expectation_values(itensor::MPO &A){
 			//auto trial_wavefunction = walkers[0];
@@ -148,6 +178,7 @@ class ThermalWalkers{
 
 		//Unweighted overlaps
 		vector<double> overlaps(itensor::MPS &psi_other){
+			reset_time(6);
 			vector<double> ovs;
 			//double norm2 = std::sqrt(std::abs(itensor::innerC(psi_other, psi_other)));
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
@@ -158,10 +189,12 @@ class ThermalWalkers{
 				}
 				ovs.push_back(std::real(overlap_complex)/weights[MPS_index]);
 			}
+			process_times[6] += reset_time(6);
 			return ovs;
 		}
 
 		vector<double> weighted_overlaps(itensor::MPS &psi_other){
+			reset_time(6);
 			vector<double> ovs;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				std::complex<double> overlap_complex = itensor::innerC(walkers[MPS_index], psi_other);
@@ -170,20 +203,24 @@ class ThermalWalkers{
 				}
 				ovs.push_back(std::real(overlap_complex));
 			}
+			process_times[6] += reset_time(6);
 			return ovs;
 		}
 
 		//Overlap <psi_other|psi> weighted by weights (no need to multiply weights as we already have |psi>)
 		double overlap(itensor::MPS &psi_other){
+			reset_time(6);
 			double ov = 0;
 			for(auto MPS_iter = walkers.begin(); MPS_iter != walkers.end(); ++MPS_iter){
 				ov += std::real(itensor::innerC(*MPS_iter, psi_other));
 			}
+			process_times[6] += reset_time(6);
 			return ov;
 		}
 
 		//Energies of each MPS weighted by weights
 		double expectation_value(itensor::MPO &A){
+			reset_time(6);
 			//auto trial_wavefunction = walkers[0];
 			double weighted_energy = 0;
 			double weighted_sum = 0;
@@ -191,15 +228,18 @@ class ThermalWalkers{
 				weighted_energy += std::real(itensor::innerC(trial_wavefunction, A, walkers[MPS_index]));
 				weighted_sum += std::real(itensor::innerC(trial_wavefunction, walkers[MPS_index]));
 			}
+			process_times[6] += reset_time(6);
 			return weighted_energy/(weighted_sum*num_sites);
 		}
 
 		//Unweighted average energy of each MPS
 		double average_walker_energy(itensor::MPO &A){
+			reset_time(6);
 			double en = 0;
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				en += std::real(itensor::innerC(walkers[MPS_index], A, walkers[MPS_index]))/(weights[MPS_index]*weights[MPS_index]);
 			}
+			process_times[6] += reset_time(6);
 			return en/walkers.size();
 		}
 
@@ -223,8 +263,12 @@ class ThermalWalkers{
 			for(double current_beta = tau; current_beta <= beta; current_beta += tau){
 				double old_weight_sum = norm(weights);
 				//std::cerr << " Starting first state energy: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+				reset_time(2);
 				apply_MPO_no_truncation();
+				process_times[2] += reset_time(2);
+				reset_time(1);
 				std::cerr << " First state energy after itev: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+				process_times[1] += reset_time(1);
 				double new_weight_sum = norm(weights);
 				process();
 				double after_trunc_weight_sum = norm(weights);
@@ -251,14 +295,19 @@ class ThermalWalkers{
 				std::cerr << weight << " ";
 			}
 			std::cerr << std::endl;*/
-			time_t start_time = time(NULL);
+			reset_time(7);
+
 			combine_walkers();
 			//std::cerr << " First state energy after combining: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 			//std::cerr << "Combined walkers (" << difftime(time(NULL), start_time)*1000 << "ms)" << endl;
 			
 			split_walkers();
+
+			process_times[7] += reset_time(7);
+
+			reset_time(1);
 			std::cerr << " First state energy after combining and splitting: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
-			
+			process_times[1] += reset_time(1);
 			/*std::cerr << "    Recombined walker weights: ";
 			for(double weight : weights){
 				std::cerr << weight << " ";
@@ -461,10 +510,13 @@ class ThermalWalkers{
 
 		void truncate_single_site_single_MPS(int site, int MPS_index){
 			//std::cerr << "Performing SVD on site..." << std::endl;
+			reset_time(3);
 			auto[U,S,V] = svd_on_site(MPS_index, site);
+			process_times[3] += reset_time(3);
 			//Print(S);
 			auto V_original_index = itensor::commonIndex(S,V);
 			auto U_original_index = itensor::commonIndex(U,S);
+			reset_time(4);
 			std::vector<double> singular_values = abs_diagonal_elems(S);
 			int middle_site = num_sites/2;
 			if((site == middle_site) && (MPS_index == 0)){
@@ -520,8 +572,11 @@ class ThermalWalkers{
 			if(verbose){
 				std::cerr << "   New set weight: " << singular_value_weight << std::endl;
 			}
+			process_times[4] += reset_time(4);
 			//std::cerr << "Truncating after selecting singular values..." << std::endl;
+			reset_time(5);
 			truncate_based_on_selection(truncated_repeats, original_indices, U, S, V, original_bd, site, MPS_index, singular_value_weight, kept_singular_values_real);
+			process_times[5] += reset_time(5);
 		}
 		void truncate_single_MPS(int MPS_index){
 			for(int site = 1; site < num_sites; site++){

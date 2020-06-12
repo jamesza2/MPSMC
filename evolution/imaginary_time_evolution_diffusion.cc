@@ -243,6 +243,8 @@ int main(int argc, char *argv[]){
 		//out_file << energy << "|" << bond_dimension << "|" << avg_Sz_val << endl;
 	}
 
+	std::cerr << tw.print_times() << std::endl;
+
 	if(log_file_name != ""){
 		std::cerr.rdbuf(coutbuf);
 	}
