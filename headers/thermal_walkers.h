@@ -152,6 +152,7 @@ class ThermalWalkers{
 		}
 
 		vector<double> expectation_values(itensor::MPO &A){
+			reset_time(6);
 			//auto trial_wavefunction = walkers[0];
 			vector<double> evs;
 			for(auto MPS_iter = walkers.begin(); MPS_iter != walkers.end(); ++MPS_iter){
@@ -162,6 +163,7 @@ class ThermalWalkers{
 				}
 				evs.push_back(std::real(me_complex)/num_sites);
 			}
+			process_times[6] += reset_time(6);
 			return evs;
 		}
 
@@ -273,9 +275,9 @@ class ThermalWalkers{
 				reset_time(2);
 				apply_MPO_no_truncation();
 				process_times[2] += reset_time(2);
-				reset_time(1);
-				std::cerr << " First state energy after itev: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
-				process_times[1] += reset_time(1);
+				//reset_time(1);
+				//std::cerr << " First state energy after itev: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+				//process_times[1] += reset_time(1);
 				double new_weight_sum = norm(weights);
 				process();
 				double after_trunc_weight_sum = norm(weights);
@@ -312,9 +314,9 @@ class ThermalWalkers{
 
 			process_times[7] += reset_time(7);
 
-			reset_time(1);
-			std::cerr << " First state energy after combining and splitting: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
-			process_times[1] += reset_time(1);
+			//reset_time(1);
+			//std::cerr << " First state energy after combining and splitting: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			//process_times[1] += reset_time(1);
 			/*std::cerr << "    Recombined walker weights: ";
 			for(double weight : weights){
 				std::cerr << weight << " ";
