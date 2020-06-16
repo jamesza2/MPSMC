@@ -304,15 +304,7 @@ class ThermalWalkers{
 				std::cerr << weight << " ";
 			}
 			std::cerr << std::endl;*/
-			reset_time(7);
-
-			combine_walkers();
-			//std::cerr << " First state energy after combining: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
-			//std::cerr << "Combined walkers (" << difftime(time(NULL), start_time)*1000 << "ms)" << endl;
 			
-			split_walkers();
-
-			process_times[7] += reset_time(7);
 
 			//reset_time(1);
 			//std::cerr << " First state energy after combining and splitting: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
@@ -328,7 +320,7 @@ class ThermalWalkers{
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
 					itensor::MPS original(walkers[MPS_index]);
-					double old_weight = weights[MPS_index];
+					//double old_weight = weights[MPS_index];
 					if(verbose){
 						std::cerr << "Truncating MPS #" << MPS_index << "..." << std::endl;
 					}
@@ -336,11 +328,21 @@ class ThermalWalkers{
 					truncate_single_MPS(MPS_index);
 					reweight(MPS_index);
 					
-					if(verbose){
+					/*if(verbose){
 						std::cerr << "FIDELITY AFTER TRUNCATION: " << itensor::inner(original, walkers[MPS_index])/(old_weight*weights[MPS_index]) << std::endl;
-					}
+					}*/
 				}
 			}
+
+			reset_time(7);
+
+			combine_walkers();
+			//std::cerr << " First state energy after combining: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
+			//std::cerr << "Combined walkers (" << difftime(time(NULL), start_time)*1000 << "ms)" << endl;
+			
+			split_walkers();
+
+			process_times[7] += reset_time(7);
 			//std::cerr << " First state energy after truncation: " <<itensor::inner(walkers[0], *H, walkers[0])/(num_sites*weights[0]*weights[0]) << std::endl;
 			
 			//For each walker:
@@ -976,7 +978,7 @@ class ThermalWalkers{
 				psi.replaceLinkInds(itensor::IndexSet(new_link_indices));
 				psi.replaceSiteInds(itensor::noPrime(itensor::siteInds(psi)));
 				psi *= std::exp(trial_energy*tau);
-				weights[MPS_index] = std::sqrt(std::abs(itensor::innerC(psi, psi)));
+				//weights[MPS_index] = std::sqrt(std::abs(itensor::innerC(psi, psi)));
 				if(verbose){
 					std::cerr << "FIDELITY AFTER ITE: " << itensor::inner(old_psi, walkers[MPS_index])/(old_weight*weights[MPS_index]) << std::endl;
 				}
