@@ -314,7 +314,7 @@ int main(int argc, char *argv[]){
 		}
 	}
 	
-	out_file << "\n#FIRST_STATE_ENERGIES:";
+	out_file << "\n#FIRST_STATE_ENERGIES:\n";
 	for(double fse : first_state_energies){
 		out_file << fse << " ";
 	}
