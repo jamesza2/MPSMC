@@ -139,7 +139,7 @@ int main(int argc, char *argv[]){
 
 
 
-	ThermalWalkers tw(sites, itev, H, tau, max_bd, truncated_bd, num_walkers, num_max_walkers, random_singular_value_weight);
+	ThermalWalkers tw(sites, itev, H, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
 	if(trial_bd != 0){
 		itensor::MPS random_trial = randomMPS::randomMPS(sites, trial_bd, trial_correlation_length);
 		random_trial.normalize();
