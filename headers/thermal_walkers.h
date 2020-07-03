@@ -45,6 +45,7 @@ class ThermalWalkers{
 		std::vector<double> process_times;
 		std::vector<std::time_t> timers;
 		std::time_t creation_time;
+		double random_sv_weight;
 
 
 		ThermalWalkers(itensor::SiteSet &sites, 
@@ -86,6 +87,11 @@ class ThermalWalkers{
 			timing = false;
 			process_times = std::vector<double>(NUM_PROCESSES_TO_TIME, 0.0);
 			timers = std::vector<std::time_t>(NUM_PROCESSES_TO_TIME, std::time(NULL));
+			random_sv_weight = 1;
+		}
+
+		void set_random_singular_value_weight(double random_singular_value_weight_input){
+			random_sv_weight = random_singular_value_weight_input;
 		}
 
 		void set_trial_energy_calculation_mode(std::string te_mode_string){
@@ -578,7 +584,7 @@ class ThermalWalkers{
 			}
 			double singular_value_weight = 1;
 			if(truncated_bd != 0){
-				singular_value_weight = sum(singular_values)/truncated_bd;
+				singular_value_weight = random_sv_weight*sum(singular_values)/truncated_bd;
 			}
 			if(verbose){
 				std::cerr << "   New set weight: " << singular_value_weight << std::endl;
@@ -979,9 +985,9 @@ class ThermalWalkers{
 				psi.replaceSiteInds(itensor::noPrime(itensor::siteInds(psi)));
 				psi *= std::exp(trial_energy*tau);
 				//weights[MPS_index] = std::sqrt(std::abs(itensor::innerC(psi, psi)));
-				if(verbose){
+				/*if(verbose){
 					std::cerr << "FIDELITY AFTER ITE: " << itensor::inner(old_psi, walkers[MPS_index])/(old_weight*weights[MPS_index]) << std::endl;
-				}
+				}*/
 			}
 			
 		}
