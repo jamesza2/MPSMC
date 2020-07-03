@@ -80,6 +80,7 @@ int main(int argc, char *argv[]){
 	std::string true_gs_file = input.testString("true_ground_state_file", "");
 	std::string bond_list_file_name = input.testString("bond_list_file", "");
 	double singular_value_sum_threshhold = input.testDouble("singular_value_sum_threshhold", 0);
+	double random_singular_value_weight = input.testDouble("random_singular_value_weight", 1.0);
 	if(false_gs){
 		true_gs_file = "";
 	}
@@ -138,12 +139,13 @@ int main(int argc, char *argv[]){
 
 
 
-	ThermalWalkers tw(sites, itev, H, tau, max_bd, truncated_bd, num_walkers, num_max_walkers);
+	ThermalWalkers tw(sites, itev, H, tau, max_bd, truncated_bd, num_walkers, num_max_walkers, random_singular_value_weight);
 	if(trial_bd != 0){
 		itensor::MPS random_trial = randomMPS::randomMPS(sites, trial_bd, trial_correlation_length);
 		random_trial.normalize();
 		tw.set_trial_wavefunction(random_trial);
 		tw.set_MPS(random_trial, 0);
+		tw.set_random_singular_value_weight(random_singular_value_weight);
 	}
 	tw.set_kept_singular_values(kept_singular_values);
 	tw.fixed_node = fixed_node;
@@ -260,6 +262,7 @@ int main(int argc, char *argv[]){
 	out_file << "\n#TRUNCATED_BD:\n" << truncated_bd;
 	out_file << "\n#TRIAL_ENERGY_CALCULATION_MODE:\n" << trial_energy_calculation_mode;
 	out_file << "\n#HAMILTONIAN_TYPE:\n" << hamiltonian_type;
+	out_file << "\n#RANDOM_SINGULAR_VALUE_WEIGHT\n" << random_singular_value_weight;
 	out_file << "\n#HAMILTONIAN_PARAMETERS:\n";
 	if(hamiltonian_type == "J1J3"){
 		out_file << J2 << " " << J3;
