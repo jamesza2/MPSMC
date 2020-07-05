@@ -145,8 +145,8 @@ int main(int argc, char *argv[]){
 		random_trial.normalize();
 		tw.set_trial_wavefunction(random_trial);
 		tw.set_MPS(random_trial, 0);
-		tw.set_random_singular_value_weight(random_singular_value_weight);
 	}
+	tw.set_random_singular_value_weight(random_singular_value_weight);
 	tw.set_kept_singular_values(kept_singular_values);
 	tw.fixed_node = fixed_node;
 	tw.verbose = verbose;
