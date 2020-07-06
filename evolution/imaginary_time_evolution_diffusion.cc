@@ -133,7 +133,7 @@ int main(int argc, char *argv[]){
 	itensor::MPO H = itensor::toMPO(ampo);
 
 	//Print(H);
-	Print(itev);
+	//Print(itev);
 
 	auto avg_Sz_ampo = opm.AverageSz();
 	itensor::MPO avg_Sz = itensor::toMPO(avg_Sz_ampo);
