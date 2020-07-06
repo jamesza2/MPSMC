@@ -89,7 +89,8 @@ class ThermalWalkers{
 			process_times = std::vector<double>(NUM_PROCESSES_TO_TIME, 0.0);
 			timers = std::vector<std::time_t>(NUM_PROCESSES_TO_TIME, std::time(NULL));
 			random_sv_weight = 1;
-			record_truncation_fidelities = std::vector<double>(num_walkers, 1);
+			record_truncation_fidelities = false;
+			truncation_fidelities = std::vector<double>(num_walkers, 1);
 		}
 
 		void set_record_truncation_fidelities(bool recording){
