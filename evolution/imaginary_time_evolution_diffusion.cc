@@ -81,6 +81,7 @@ int main(int argc, char *argv[]){
 	std::string bond_list_file_name = input.testString("bond_list_file", "");
 	double singular_value_sum_threshhold = input.testDouble("singular_value_sum_threshhold", 0);
 	double random_singular_value_weight = input.testDouble("random_singular_value_weight", 1.0);
+	bool record_truncation_fidelities = input.testBool("record_truncation_fidelities", false);
 	if(false_gs){
 		true_gs_file = "";
 	}
@@ -132,7 +133,7 @@ int main(int argc, char *argv[]){
 	itensor::MPO H = itensor::toMPO(ampo);
 
 	//Print(H);
-	//Print(itev);
+	Print(itev);
 
 	auto avg_Sz_ampo = opm.AverageSz();
 	itensor::MPO avg_Sz = itensor::toMPO(avg_Sz_ampo);
@@ -148,6 +149,7 @@ int main(int argc, char *argv[]){
 	}
 	tw.set_random_singular_value_weight(random_singular_value_weight);
 	tw.set_kept_singular_values(kept_singular_values);
+	tw.set_record_truncation_fidelities(record_truncation_fidelities);
 	tw.fixed_node = fixed_node;
 	tw.verbose = verbose;
 	tw.singular_value_sum_threshhold = singular_value_sum_threshhold;
@@ -197,6 +199,7 @@ int main(int argc, char *argv[]){
 	vector<double> trial_energies;
 	vector<double> entanglement_entropies;
 	vector<double> first_state_energies;
+	vector<vector<double>> truncation_fidelities;
 	for(int iteration = 0; iteration < num_iterations; iteration++){
 		time_t start_time = time(NULL);
 		trial_energies.push_back(tw.trial_energy);
@@ -209,7 +212,7 @@ int main(int argc, char *argv[]){
 			true_gs = itensor::applyMPO(itev, true_gs, {"Maxdim=", false_gs_bond_dimension});
 		}
 		
-
+		vector<double> fidelities = tw.truncation_fidelities;
 		vector<double> energies = tw.expectation_values(H);
 		vector<double> weights = tw.get_weights();
 		vector<double> overlaps = tw.weighted_overlaps(tw.trial_wavefunction);
@@ -233,6 +236,7 @@ int main(int argc, char *argv[]){
 		walker_weights.push_back(weights);
 		walker_overlaps.push_back(overlaps);
 		average_energies.push_back(energy);
+		truncation_fidelities.push_back(fidelities);
 		num_current_walkers.push_back(tw.weights.size());
 		entanglement_entropies.push_back(tw.average_entanglement_entropy(num_sites/2));
 		bds.push_back(tw.get_bds());
@@ -313,6 +317,16 @@ int main(int argc, char *argv[]){
 			out_file << "\n";
 			for(double true_gs_overlap : true_gs_overlap_vector){
 				out_file << true_gs_overlap << " ";
+			}
+		}
+	}
+
+	if(record_truncation_fidelities){
+		out_file << "\n#TRUNCATION_FIDELITIES:";
+		for(vector<double> truncation_fidelities_at_step : truncation_fidelities){
+			out_file << "\n";
+			for(double fidelity : truncation_fidelities_at_step){
+				out_file << fidelity << " ";
 			}
 		}
 	}

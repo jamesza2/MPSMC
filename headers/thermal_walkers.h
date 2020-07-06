@@ -46,7 +46,8 @@ class ThermalWalkers{
 		std::vector<std::time_t> timers;
 		std::time_t creation_time;
 		double random_sv_weight;
-
+		bool record_truncation_fidelities;
+		std::vector<double> truncation_fidelities;
 
 		ThermalWalkers(itensor::SiteSet &sites, 
 			itensor::MPO &itev_input, 
@@ -88,6 +89,11 @@ class ThermalWalkers{
 			process_times = std::vector<double>(NUM_PROCESSES_TO_TIME, 0.0);
 			timers = std::vector<std::time_t>(NUM_PROCESSES_TO_TIME, std::time(NULL));
 			random_sv_weight = 1;
+			record_truncation_fidelities = std::vector<double>(num_walkers, 1);
+		}
+
+		void set_record_truncation_fidelities(bool recording){
+			record_truncation_fidelities = recording;
 		}
 
 		void set_random_singular_value_weight(double random_singular_value_weight_input){
@@ -321,7 +327,10 @@ class ThermalWalkers{
 			}
 			std::cerr << std::endl;*/
 
-			
+			if(record_truncation_fidelities){
+				truncation_fidelities.clear();
+				truncation_fidelities = std::vector<double>(walkers.size(), 1);
+			}
 
 			for(int MPS_index = 0; MPS_index < walkers.size(); MPS_index ++){
 				if(itensor::maxLinkDim(walkers[MPS_index]) > max_bd){
@@ -332,7 +341,16 @@ class ThermalWalkers{
 					}
 					
 					truncate_single_MPS(MPS_index);
+
+
 					reweight(MPS_index);
+
+					if(record_truncation_fidelities){
+						reset_time(1);
+						double original_weight = std::sqrt(itensor::inner(original, original));
+						truncation_fidelities[MPS_index] = itensor::inner(original, walkers[MPS_index])/(original_weight*weights[MPS_index]);
+						process_times[1] += reset_time(1);
+					}
 					
 					/*if(verbose){
 						std::cerr << "FIDELITY AFTER TRUNCATION: " << itensor::inner(original, walkers[MPS_index])/(old_weight*weights[MPS_index]) << std::endl;
@@ -584,7 +602,7 @@ class ThermalWalkers{
 			}
 			double singular_value_weight = 1;
 			if(truncated_bd != 0){
-				singular_value_weight = random_sv_weight*sum(singular_values)/truncated_bd;
+				singular_value_weight = sum(singular_values)/truncated_bd;
 			}
 			if(verbose){
 				std::cerr << "   New set weight: " << singular_value_weight << std::endl;
@@ -664,7 +682,7 @@ class ThermalWalkers{
 				S.set(T_truncated_index = repeat_index, T_truncated_index_primed = repeat_index, singular_values[repeat_index-1]);
 			}
 			for(int repeat_index = 1; repeat_index <= final_truncated_bd; repeat_index ++){
-				S.set(T_truncated_index = repeat_index + kept_singular_values_real, T_truncated_index_primed = repeat_index + kept_singular_values_real, singular_value_weight*truncated_repeats[repeat_index-1]);
+				S.set(T_truncated_index = repeat_index + kept_singular_values_real, T_truncated_index_primed = repeat_index + kept_singular_values_real, random_sv_weight*singular_value_weight*truncated_repeats[repeat_index-1]);
 			}
 			std::vector<double> new_singular_values = abs_diagonal_elems(S);
 			int middle_site = num_sites/2;
